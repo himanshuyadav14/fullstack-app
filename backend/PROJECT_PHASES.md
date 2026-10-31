@@ -1,0 +1,343 @@
+# TeamFlow Backend — Phase-Wise Development & Progress Tracker
+
+> **Project:** TeamFlow (Full-Stack Team & Project Management System)  
+> **Backend Tech Stack:** Node.js, Express.js (CommonJS), MongoDB, Mongoose, JWT, bcrypt, Socket.IO, Cloudinary  
+> **Last Updated:** October 31, 2026
+
+---
+
+## 📌 Development Philosophy & Rules
+
+1. **Incremental Development:** Build and verify one module and endpoint at a time.
+2. **Quality Over Speed:** Understand schemas, relationships, validations, and edge cases before writing code.
+3. **No Overwrites / Breaking Changes:** Always preserve existing working functionality and plan migrations safely.
+4. **Postman Verifiable:** Every endpoint should be manually tested and verified before marking as complete.
+5. **Security First:** Strict input validation, dynamic RBAC enforcement, no leaked sensitive data, prevent privilege escalation.
+
+---
+
+## 🗺️ Master Phase Overview
+
+| Phase #      | Module / Feature                               |       Status       | Description                                                                            |
+| :----------- | :--------------------------------------------- | :----------------: | :------------------------------------------------------------------------------------- |
+| **Phase 1**  | **Core Setup & Authentication**                |  ✅ **Completed**  | Server setup, DB connection, JWT auth, signup/login/getMe, initial seed                |
+| **Phase 2**  | **User Management CRUD**                       |  ✅ **Completed**  | Get users, update user role, update profile, delete/deactivate user                    |
+| **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ⏳ **Upcoming**   | Full role CRUD, dynamic permissions registry, safely migrating role string to ObjectId |
+| **Phase 4**  | **Organization & Membership**                  |  ⏳ **Upcoming**   | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
+| **Phase 5**  | **Team Management**                            |  ⏳ **Upcoming**   | Teams under organizations, team managers, members, team scoping                        |
+| **Phase 6**  | **Project Management**                         |  ⏳ **Upcoming**   | Projects under organizations, project assignments, status tracking, filters            |
+| **Phase 7**  | **Task Management & Assignments**              |  ⏳ **Upcoming**   | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
+| **Phase 8**  | **Comments Module**                            |  ⏳ **Upcoming**   | Task comments, editing, deletion with ownership checks                                 |
+| **Phase 9**  | **File Uploads (Cloudinary)**                  |  ⏳ **Upcoming**   | Avatars, task attachments, file validation, storage metadata in DB                     |
+| **Phase 10** | **Notifications System**                       |  ⏳ **Upcoming**   | In-app notification triggers, read status, pagination                                  |
+| **Phase 11** | **Real-time WebSockets (Socket.IO)**           |  ⏳ **Upcoming**   | Authenticated socket connections, live updates for tasks/comments/notifications        |
+| **Phase 12** | **Dashboard & Analytics**                      |  ⏳ **Upcoming**   | Org/team/user metrics, task status breakdown, overdue analytics                        |
+| **Phase 13** | **Hardening, Indexing & Production Readiness** |  ⏳ **Upcoming**   | Rate limiting, CORS policies, Mongo indexes, centralized error handling                |
+
+---
+
+## 📂 Detailed Phase Breakdown
+
+---
+
+### Phase 1: Core Setup & Authentication
+
+**Status:** ✅ Completed
+
+#### 1. Components Implemented
+
+- **Server & Database**:
+  - Express server configured in `src/server.js`.
+  - MongoDB connection via Mongoose in `src/config/db.js`.
+  - Environment variables loaded via `dotenv`.
+- **User Schema**:
+  - `src/models/User.js` with `name`, `email`, `password` (bcrypt hash), and initial `role` string.
+- **Authentication Routes & Controller**:
+  - `POST /api/auth/signup`: Validates input, hashes password, prevents duplicates, returns status 201.
+  - `POST /api/auth/login`: Validates credentials, checks bcrypt hash, issues JWT token.
+  - `GET /api/auth/me`: Authenticated endpoint returning user profile.
+- **Middleware**:
+  - `src/middleware/authMiddleware.js`: Validates `Bearer <token>` and attaches decoded user to `req.user`.
+- **Initial Permissions & Seed**:
+  - `src/constants/permissions.js`: Initial frozen permissions object.
+  - `src/models/Role.js`: Role schema with `name` and `permissions` array.
+  - `src/seed/seedRoles.js`: Upserts default roles (`admin`, `manager`, `member`).
+  - `src/middleware/authorizePermission.js`: Middleware verifying dynamic permission in DB.
+
+#### 2. Endpoints Summary
+
+| Method | Endpoint           | Access / Permission | Description                        |
+| :----- | :----------------- | :------------------ | :--------------------------------- |
+| `POST` | `/api/auth/signup` | Public              | Register new user account          |
+| `POST` | `/api/auth/login`  | Public              | Authenticate user & receive JWT    |
+| `GET`  | `/api/auth/me`     | Authenticated       | Fetch current user session details |
+
+---
+
+### Phase 2: User Management CRUD
+
+**Status:** ✅ Completed
+
+#### 1. Scope & Goals
+
+- Provide complete administrative and self-service user management.
+- Ensure strict safeguards against unauthorized role assignment, self-demotion, or deletion of the last admin.
+
+#### 2. Implementation Steps
+
+- [x] `GET /api/users` — Fetch all users (excluding passwords) with permission `user:read`.
+- [x] `GET /api/users/:userId` — Fetch specific user by ID with permission `user:read`.
+- [x] `PATCH /api/users/:userId/role` — Complete role assignment with validation & admin safeguards.
+- [x] `PATCH /api/users/profile` — Update logged-in user profile details (name).
+- [x] `DELETE /api/users/:userId` — Soft delete or hard delete user with admin safeguard checks.
+
+#### 3. Endpoints Summary
+
+| Method   | Endpoint                  | Permission           |   Status   | Notes                                         |
+| :------- | :------------------------ | :------------------- | :--------: | :-------------------------------------------- |
+| `GET`    | `/api/users`              | `user:read`          |  ✅ Done   | Excludes sensitive fields (`password`, `__v`) |
+| `GET`    | `/api/users/:userId`      | `user:read`          |  ✅ Done   | Validates ObjectId format                     |
+| `PATCH`  | `/api/users/:userId/role` | `user:update`        |  ✅ Done   | Role existence & last-admin protection checks |
+| `PATCH`  | `/api/users/profile`      | Authenticated (Self) |  ✅ Done   | Self-profile update directly via `req.user.id`|
+| `DELETE` | `/api/users/:userId`      | `user:delete`        |  ✅ Done   | Self-delete & last-admin protection checks    |
+
+---
+
+### Phase 3: Dynamic RBAC & Role Migration
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Transform roles from static strings/enums into 100% dynamic MongoDB documents.
+- Support creation of custom roles with custom permissions.
+- Provide canonical permissions registry in code with validation.
+- Safely migrate `User.role` from string to Role `ObjectId` reference without breaking existing users.
+
+#### 2. Endpoints to Build
+
+| Method          | Endpoint                 | Permission    | Description                                          |
+| :-------------- | :----------------------- | :------------ | :--------------------------------------------------- |
+| `GET`           | `/api/roles`             | `role:read`   | Fetch all available roles and their permissions      |
+| `GET`           | `/api/roles/permissions` | `role:read`   | List all canonical system permissions available      |
+| `POST`          | `/api/roles`             | `role:create` | Create a new dynamic custom role                     |
+| `PUT` / `PATCH` | `/api/roles/:roleId`     | `role:update` | Update role name, description, or permissions        |
+| `DELETE`        | `/api/roles/:roleId`     | `role:delete` | Delete role (prevent deletion if users are assigned) |
+
+---
+
+### Phase 4: Organization Management & Membership
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Introduce multi-tenancy: users can create or join organizations.
+- Data isolation: all subsequent resources (teams, projects, tasks) belong to an organization.
+- Membership model (`User` <-> `Organization`) holding organization-scoped roles.
+
+#### 2. Key Models
+
+- `Organization.js`: `name`, `slug`, `ownerId`, `isActive`, `timestamps`.
+- `Membership.js`: `userId`, `organizationId`, `roleId`, `status` (`active`, `invited`), `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `POST /api/organizations` — Create new organization (creator automatically becomes Org Admin).
+- `GET /api/organizations` — Get organizations where current user is a member.
+- `GET /api/organizations/:orgId` — Get organization details.
+- `PATCH /api/organizations/:orgId` — Update organization details.
+- `POST /api/organizations/:orgId/members` — Invite/add member to organization.
+- `DELETE /api/organizations/:orgId/members/:userId` — Remove member from organization.
+
+---
+
+### Phase 5: Team Management
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Teams organized within organizations (e.g., Engineering, Marketing, Design).
+- Team leaders/managers and member associations.
+
+#### 2. Key Models
+
+- `Team.js`: `name`, `description`, `organizationId`, `managerId`, `members: [userId]`, `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `POST /api/organizations/:orgId/teams` — Create team.
+- `GET /api/organizations/:orgId/teams` — List teams for organization.
+- `GET /api/organizations/:orgId/teams/:teamId` — Team details with members.
+- `PATCH /api/organizations/:orgId/teams/:teamId` — Update team info/manager.
+- `POST /api/organizations/:orgId/teams/:teamId/members` — Add members to team.
+- `DELETE /api/organizations/:orgId/teams/:teamId/members/:userId` — Remove member.
+- `DELETE /api/organizations/:orgId/teams/:teamId` — Delete team.
+
+---
+
+### Phase 6: Project Management
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Projects scoped to organizations and linked to teams.
+- Project status (`planning`, `active`, `completed`, `on_hold`).
+- Date tracking (start date, due date).
+
+#### 2. Key Models
+
+- `Project.js`: `name`, `key`, `description`, `organizationId`, `teamId`, `members: [userId]`, `status`, `startDate`, `dueDate`, `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `POST /api/organizations/:orgId/projects` — Create project.
+- `GET /api/organizations/:orgId/projects` — List projects (with search, pagination, status filters).
+- `GET /api/organizations/:orgId/projects/:projectId` — Project details.
+- `PATCH /api/organizations/:orgId/projects/:projectId` — Update project.
+- `DELETE /api/organizations/:orgId/projects/:projectId` — Delete project.
+
+---
+
+### Phase 7: Task Management & Assignments
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Core work unit: tasks associated with projects and teams.
+- Attributes: Title, description, status (`todo`, `in_progress`, `in_review`, `completed`), priority (`low`, `medium`, `high`, `urgent`), assignee, reporter, due date.
+- Advanced querying: filtering by assignee, status, priority, due date; pagination; sorting.
+
+#### 2. Key Models
+
+- `Task.js`: `title`, `description`, `projectId`, `teamId`, `organizationId`, `status`, `priority`, `assigneeId`, `reporterId`, `dueDate`, `startDate`, `attachments`, `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `POST /api/projects/:projectId/tasks` — Create task.
+- `GET /api/projects/:projectId/tasks` — List tasks with filters & pagination.
+- `GET /api/tasks/:taskId` — Get single task details.
+- `PATCH /api/tasks/:taskId` — Update task details / status.
+- `PATCH /api/tasks/:taskId/assign` — Assign or reassign task.
+- `DELETE /api/tasks/:taskId` — Delete task.
+
+---
+
+### Phase 8: Comments Module
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Discussions on tasks with author attribution, timestamps, edit history.
+- Authorization: only author or authorized admin can edit/delete comments.
+
+#### 2. Key Models
+
+- `Comment.js`: `taskId`, `authorId`, `content`, `isEdited`, `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `POST /api/tasks/:taskId/comments` — Add comment.
+- `GET /api/tasks/:taskId/comments` — List comments for task.
+- `PATCH /api/comments/:commentId` — Edit own comment.
+- `DELETE /api/comments/:commentId` — Delete comment.
+
+---
+
+### Phase 9: File Upload (Cloudinary)
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- User avatars and task attachments.
+- Secure upload handling, validation of file size and MIME types.
+- Cloudinary asset cleanup on resource deletion.
+
+#### 2. Planned Endpoints
+
+- `POST /api/users/avatar` — Upload and update user profile picture.
+- `POST /api/tasks/:taskId/attachments` — Upload attachments to a task.
+- `DELETE /api/tasks/:taskId/attachments/:attachmentId` — Remove attachment.
+
+---
+
+### Phase 10: Notifications System
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Trigger notifications on task assignment, task status updates, and mentions/comments.
+- Persistent notifications in MongoDB with read/unread tracking and pagination.
+
+#### 2. Key Models
+
+- `Notification.js`: `recipientId`, `senderId`, `type`, `title`, `message`, `resourceId`, `resourceType`, `isRead`, `timestamps`.
+
+#### 3. Planned Endpoints
+
+- `GET /api/notifications` — Fetch user notifications (paginated, unread filter).
+- `PATCH /api/notifications/:notificationId/read` — Mark single notification as read.
+- `PATCH /api/notifications/mark-all-read` — Mark all as read.
+
+---
+
+### Phase 11: Real-time Communication (Socket.IO)
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Real-time updates delivered instantly to connected clients.
+- JWT-authenticated socket handshakes.
+- Rooms partitioned by user ID (`user:<id>`), organization (`org:<id>`), and project (`project:<id>`).
+- Events: `task:created`, `task:updated`, `task:assigned`, `comment:added`, `notification:received`.
+
+---
+
+### Phase 12: Dashboard & Analytics APIs
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- High-level overview metrics for managers and admins.
+- Scoped to the requesting user's organization and permissions.
+
+#### 2. Metrics Provided
+
+- Overall counts (users, teams, projects, tasks).
+- Task status breakdown (`todo`, `in_progress`, `completed`, `overdue`).
+- Team workload and user performance stats.
+
+---
+
+### Phase 13: Hardening, Security & Production Readiness
+
+**Status:** ⏳ Upcoming
+
+#### 1. Scope & Goals
+
+- Centralized error handling middleware.
+- Input validation layer (e.g. Joi or custom validator middleware).
+- Rate limiting on sensitive routes (auth, password reset).
+- MongoDB index optimization for fast queries and uniqueness constraints.
+- CORS hardening and security headers.
+
+---
+
+## 📝 Activity & Changelog Log
+
+| Date             |    Phase    | Action / Changes Made                                                                            | Verified By      |
+| :--------------- | :---------: | :----------------------------------------------------------------------------------------------- | :--------------- |
+| **Oct 31, 2026** | **Phase 1** | Auth signup, login, getMe, bcrypt, JWT, initial role seeding & permissions middleware completed. | Postman verified |
+| **Oct 31, 2026** | **Phase 2** | User list (`GET /api/users`) and user by ID (`GET /api/users/:userId`) implemented.              | Postman verified |
+| **Oct 31, 2026** | **Phase 2** | `PROJECT_PHASES.md` created to track step-by-step progress.                                      | Documentation    |
+| **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/:userId/role` with last-admin safeguard & DB role verification completed.      | Code verified    |
+| **Nov 01, 2026** | **Phase 2** | `DELETE /api/users/:userId` with self-delete & last-admin safeguard completed.                   | Code verified    |
+| **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/profile` self profile update via authenticated `req.user.id` completed.        | Code verified    |
