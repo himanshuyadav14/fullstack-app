@@ -22,7 +22,7 @@
 | :----------- | :--------------------------------------------- | :----------------: | :------------------------------------------------------------------------------------- |
 | **Phase 1**  | **Core Setup & Authentication**                |  ✅ **Completed**  | Server setup, DB connection, JWT auth, signup/login/getMe, initial seed                |
 | **Phase 2**  | **User Management CRUD**                       |  ✅ **Completed**  | Get users, update user role, update profile, delete/deactivate user                    |
-| **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ⏳ **Upcoming**   | Full role CRUD, dynamic permissions registry, safely migrating role string to ObjectId |
+| **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ✅ **Completed**  | Full role CRUD, dynamic permissions registry, role safeguards & dynamic enums removed  |
 | **Phase 4**  | **Organization & Membership**                  |  ⏳ **Upcoming**   | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
 | **Phase 5**  | **Team Management**                            |  ⏳ **Upcoming**   | Teams under organizations, team managers, members, team scoping                        |
 | **Phase 6**  | **Project Management**                         |  ⏳ **Upcoming**   | Projects under organizations, project assignments, status tracking, filters            |
@@ -105,24 +105,24 @@
 
 ### Phase 3: Dynamic RBAC & Role Migration
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
 - Transform roles from static strings/enums into 100% dynamic MongoDB documents.
 - Support creation of custom roles with custom permissions.
 - Provide canonical permissions registry in code with validation.
-- Safely migrate `User.role` from string to Role `ObjectId` reference without breaking existing users.
+- Safeguard system roles (`admin`, etc.) and prevent deletion of roles currently in use.
 
-#### 2. Endpoints to Build
+#### 2. Endpoints Summary
 
-| Method          | Endpoint                 | Permission    | Description                                          |
-| :-------------- | :----------------------- | :------------ | :--------------------------------------------------- |
-| `GET`           | `/api/roles`             | `role:read`   | Fetch all available roles and their permissions      |
-| `GET`           | `/api/roles/permissions` | `role:read`   | List all canonical system permissions available      |
-| `POST`          | `/api/roles`             | `role:create` | Create a new dynamic custom role                     |
-| `PUT` / `PATCH` | `/api/roles/:roleId`     | `role:update` | Update role name, description, or permissions        |
-| `DELETE`        | `/api/roles/:roleId`     | `role:delete` | Delete role (prevent deletion if users are assigned) |
+| Method   | Endpoint                        | Permission    |   Status   | Description / Protections                            |
+| :------- | :------------------------------ | :------------ | :--------: | :--------------------------------------------------- |
+| `GET`    | `/api/roles`                    | `role:read`   |  ✅ Done   | Fetch all available roles and their permissions      |
+| `GET`    | `/api/roles/permissions`        | `role:read`   |  ✅ Done   | List all canonical system permissions available      |
+| `POST`   | `/api/roles`                    | `role:create` |  ✅ Done   | Create new dynamic role with custom permissions      |
+| `PATCH`  | `/api/roles/:roleName/permissions` | `role:update` |  ✅ Done   | Update role permissions dynamically                 |
+| `DELETE` | `/api/roles/:roleName`          | `role:delete` |  ✅ Done   | Delete role (blocks system roles & assigned roles)   |
 
 ---
 
@@ -341,3 +341,4 @@
 | **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/:userId/role` with last-admin safeguard & DB role verification completed.      | Code verified    |
 | **Nov 01, 2026** | **Phase 2** | `DELETE /api/users/:userId` with self-delete & last-admin safeguard completed.                   | Code verified    |
 | **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/profile` self profile update via authenticated `req.user.id` completed.        | Code verified    |
+| **Nov 01, 2026** | **Phase 3** | Dynamic RBAC completed: permissions registry expanded, hardcoded enums removed, role CRUD (`POST /api/roles`, `GET /api/roles/permissions`, `DELETE /api/roles/:roleName` with system & user-assignment protections) implemented. | Code verified    |

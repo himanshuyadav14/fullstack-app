@@ -5,11 +5,19 @@ const RoleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      enum: ["admin", "manager", "memeber"],
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    isSystemRole: {
+      type: Boolean,
+      default: false,
     },
     permissions: {
       type: [
