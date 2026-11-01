@@ -22,18 +22,24 @@ router.get(
 
 router.get("/", authMiddleware, authorizePermission("role:read"), getRoles);
 
-router.post("/", authMiddleware, authorizePermission("role:create"), createRole);
+router.post(
+  "/",
+  authMiddleware,
+  authorizePermission("role:create"),
+  createRole,
+);
 
-// Parameterized routes
+// Update role permissions
 router.patch(
-  "/:roleName/permissions",
+  "/:roleId/permissions",
   authMiddleware,
   authorizePermission("role:update"),
   updateRolePermission,
 );
 
+// Delete role
 router.delete(
-  "/:roleName",
+  "/:roleId",
   authMiddleware,
   authorizePermission("role:delete"),
   deleteRole,

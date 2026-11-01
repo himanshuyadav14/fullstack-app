@@ -113,6 +113,7 @@
 - Support creation of custom roles with custom permissions.
 - Provide canonical permissions registry in code with validation.
 - Safeguard system roles (`admin`, etc.) and prevent deletion of roles currently in use.
+- Migrated `User.role` to MongoDB `ObjectId` reference (`ref: 'Role'`) with full `.populate()` support.
 
 #### 2. Endpoints Summary
 
@@ -342,3 +343,4 @@
 | **Nov 01, 2026** | **Phase 2** | `DELETE /api/users/:userId` with self-delete & last-admin safeguard completed.                   | Code verified    |
 | **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/profile` self profile update via authenticated `req.user.id` completed.        | Code verified    |
 | **Nov 01, 2026** | **Phase 3** | Dynamic RBAC completed: permissions registry expanded, hardcoded enums removed, role CRUD (`POST /api/roles`, `GET /api/roles/permissions`, `DELETE /api/roles/:roleName` with system & user-assignment protections) implemented. | Code verified    |
+| **Nov 01, 2026** | **Phase 3** | Migrated `User.role` to MongoDB `ObjectId` (`ref: "Role"`), updated `signup` (first user becomes admin, subsequent become member), `login` (JWT token includes `role` and `roleId`), `getMe`, and user controllers with `.populate()`. | Code verified    |

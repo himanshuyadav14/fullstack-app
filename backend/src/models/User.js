@@ -20,11 +20,9 @@ const UserSchema = new mongoose.Schema(
       minLength: 8,
     },
     role: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
       required: true,
-      default: "member",
-      trim: true,
-      lowercase: true,
     },
   },
   {

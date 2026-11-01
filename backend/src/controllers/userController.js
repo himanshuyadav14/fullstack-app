@@ -4,7 +4,10 @@ const mongoose = require("mongoose");
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select("-password -__v");
+    const users = await User.find({})
+      .select("-password -__v")
+      .populate("role", "name description isSystemRole")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       message: "Users fetched successfully",
@@ -30,7 +33,9 @@ const getUserById = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId).select("-password -__v");
+    const user = await User.findById(userId)
+      .select("-password -__v")
+      .populate("role", "name description isSystemRole");
 
     if (!user) {
       return res.status(404).json({
@@ -54,6 +59,7 @@ const getUserById = async (req, res) => {
 const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
+    const { roleId } = req.body;
 
     if (!mongoose.isValidObjectId(userId)) {
       return res.status(400).json({
@@ -61,25 +67,16 @@ const updateUserRole = async (req, res) => {
       });
     }
 
-    const { role } = req.body;
-
-    if (!role || typeof role !== "string" || !role.trim()) {
+    if (!mongoose.isValidObjectId(roleId)) {
       return res.status(400).json({
-        message: "Role is required and must be a valid string",
+        message: "Valid role ID is required",
       });
     }
 
-    const normalizedRole = role.trim().toLowerCase();
-
-    const roleExists = await Role.findOne({ name: normalizedRole });
-
-    if (!roleExists) {
-      return res.status(404).json({
-        message: "Role not found",
-      });
-    }
-
-    const existingUser = await User.findById(userId);
+    const [existingUser, targetRole] = await Promise.all([
+      User.findById(userId),
+      Role.findById(roleId),
+    ]);
 
     if (!existingUser) {
       return res.status(404).json({
@@ -87,28 +84,43 @@ const updateUserRole = async (req, res) => {
       });
     }
 
-    if (existingUser.role === "admin" && normalizedRole !== "admin") {
+    if (!targetRole) {
+      return res.status(404).json({
+        message: "Role not found",
+      });
+    }
+
+    // Last Admin Protection
+    const adminRole = await Role.findOne({ name: "admin" });
+
+    if (
+      adminRole &&
+      existingUser.role.toString() === adminRole._id.toString() &&
+      targetRole._id.toString() !== adminRole._id.toString()
+    ) {
       const adminCount = await User.countDocuments({
-        role: "admin",
+        role: adminRole._id,
       });
 
       if (adminCount <= 1) {
         return res.status(400).json({
-          message: "Cannot remove last admin",
+          message: "Cannot demote the last remaining admin",
         });
       }
     }
 
-    existingUser.role = normalizedRole;
+    existingUser.role = targetRole._id;
     await existingUser.save();
 
+    await existingUser.populate("role", "name description isSystemRole");
+
     return res.status(200).json({
-      message: "Role updated successfully",
+      message: "User role updated successfully",
       user: {
         _id: existingUser._id,
+        name: existingUser.name,
         email: existingUser.email,
         role: existingUser.role,
-        name: existingUser.name,
       },
     });
   } catch (err) {
@@ -138,14 +150,21 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    if (req.user.id === userId) {
+    // Prevent self deletion
+    if (req.user.id.toString() === user._id.toString()) {
       return res.status(400).json({
         message: "You cannot delete your own account",
       });
     }
 
-    if (user.role === "admin") {
-      const adminCount = await User.countDocuments({ role: "admin" });
+    // Last Admin Protection
+    const adminRole = await Role.findOne({ name: "admin" });
+
+    if (adminRole && user.role.toString() === adminRole._id.toString()) {
+      const adminCount = await User.countDocuments({
+        role: adminRole._id,
+      });
+
       if (adminCount <= 1) {
         return res.status(400).json({
           message: "Cannot delete the last remaining admin",
@@ -153,7 +172,7 @@ const deleteUser = async (req, res) => {
       }
     }
 
-    await User.findByIdAndDelete(userId);
+    await user.deleteOne();
 
     return res.status(200).json({
       message: "User deleted successfully",
@@ -185,7 +204,9 @@ const updateUserProfile = async (req, res) => {
       userId,
       { name: name.trim() },
       { new: true, runValidators: true },
-    ).select("-password -__v");
+    )
+      .select("-password -__v")
+      .populate("role", "name description");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -204,10 +225,52 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const deleteOwnAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Prevent deletion of the last admin
+    const adminRole = await Role.findOne({ name: "admin" });
+
+    if (adminRole && user.role.toString() === adminRole._id.toString()) {
+      const adminCount = await User.countDocuments({
+        role: adminRole._id,
+      });
+
+      if (adminCount <= 1) {
+        return res.status(400).json({
+          message: "Cannot delete the last remaining admin",
+        });
+      }
+    }
+
+    await user.deleteOne();
+
+    return res.status(200).json({
+      message: "Your account has been deleted successfully",
+    });
+  } catch (err) {
+    console.error("deleteOwnAccount Error:", err.message);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
   updateUserRole,
   deleteUser,
   updateUserProfile,
+  deleteOwnAccount,
 };

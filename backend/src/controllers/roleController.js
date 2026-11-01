@@ -1,5 +1,7 @@
 const Role = require("../models/Role");
 const User = require("../models/User");
+
+const mongoose = require("mongoose");
 const PERMISSIONS = require("../constants/permissions");
 
 // GET /api/roles/permissions
@@ -45,7 +47,8 @@ const createRole = async (req, res) => {
   try {
     const { name, description, permissions } = req.body;
 
-    if (!name || typeof name !== "string" || !name.trim()) {
+    // 1. Validate role name
+    if (typeof name !== "string" || !name.trim()) {
       return res.status(400).json({
         message: "Role name is required and must be a valid string",
       });
@@ -53,26 +56,39 @@ const createRole = async (req, res) => {
 
     const normalizedName = name.trim().toLowerCase();
 
-    // Check if role already exists
-    const existingRole = await Role.findOne({ name: normalizedName });
-    if (existingRole) {
-      return res.status(409).json({
-        message: `Role '${normalizedName}' already exists`,
+    if (normalizedName.length > 50) {
+      return res.status(400).json({
+        message: "Role name cannot exceed 50 characters",
       });
     }
 
-    // Validate permissions array if provided
+    // 2. Validate description
+    if (
+      description !== undefined &&
+      (typeof description !== "string" || description.length > 200)
+    ) {
+      return res.status(400).json({
+        message: "Description must be a string with maximum 200 characters",
+      });
+    }
+
+    // 3. Validate permissions
     let validatedPermissions = [];
+
     if (permissions !== undefined) {
-      if (!Array.isArray(permissions)) {
+      if (
+        !Array.isArray(permissions) ||
+        !permissions.every((permission) => typeof permission === "string")
+      ) {
         return res.status(400).json({
           message: "Permissions must be an array of strings",
         });
       }
 
       const allowedPermissions = Object.values(PERMISSIONS);
+
       const invalidPermissions = permissions.filter(
-        (p) => !allowedPermissions.includes(p),
+        (permission) => !allowedPermissions.includes(permission),
       );
 
       if (invalidPermissions.length > 0) {
@@ -86,15 +102,28 @@ const createRole = async (req, res) => {
       validatedPermissions = [...new Set(permissions)];
     }
 
+    // 4. Check if role already exists
+    const existingRole = await Role.findOne({
+      name: normalizedName,
+    });
+
+    if (existingRole) {
+      return res.status(409).json({
+        message: `Role '${normalizedName}' already exists`,
+      });
+    }
+
+    // 5. Create new role
     const newRole = new Role({
       name: normalizedName,
-      description: typeof description === "string" ? description.trim() : "",
+      description: description?.trim() || "",
       permissions: validatedPermissions,
       isSystemRole: false,
     });
 
     await newRole.save();
 
+    // 6. Send response
     return res.status(201).json({
       message: "Role created successfully",
       role: {
@@ -107,6 +136,13 @@ const createRole = async (req, res) => {
       },
     });
   } catch (err) {
+    // Handle MongoDB duplicate key error
+    if (err.code === 11000) {
+      return res.status(409).json({
+        message: "Role already exists",
+      });
+    }
+
     console.error("createRole error:", err.message);
 
     return res.status(500).json({
@@ -115,50 +151,79 @@ const createRole = async (req, res) => {
   }
 };
 
-// PATCH /api/roles/:roleName/permissions
+// PATCH /api/roles/:roleId/permissions
 const updateRolePermission = async (req, res) => {
   try {
-    const { roleName } = req.params;
+    const { roleId } = req.params;
     const { permissions } = req.body;
 
-    if (!Array.isArray(permissions)) {
+    // 1. Validate Role ID
+    if (!mongoose.isValidObjectId(roleId)) {
       return res.status(400).json({
-        message: "Permissions must be an array",
+        message: "Invalid role ID",
       });
     }
 
+    // 2. Validate permissions array
+    if (
+      !Array.isArray(permissions) ||
+      !permissions.every((permission) => typeof permission === "string")
+    ) {
+      return res.status(400).json({
+        message: "Permissions must be an array of strings",
+      });
+    }
+
+    // 3. Validate permission values
     const allowedPermissions = Object.values(PERMISSIONS);
 
-    const hasInvalidPermission = permissions.some(
+    const invalidPermissions = permissions.filter(
       (permission) => !allowedPermissions.includes(permission),
     );
 
-    if (hasInvalidPermission) {
+    if (invalidPermissions.length > 0) {
       return res.status(400).json({
         message: "One or more permissions are invalid",
+        invalidPermissions,
         allowedPermissions,
       });
     }
 
-    const uniquePermissions = [...new Set(permissions)];
-
-    const role = await Role.findOneAndUpdate(
-      { name: roleName.trim().toLowerCase() },
-      {
-        $set: { permissions: uniquePermissions },
-      },
-      { new: true, runValidators: true },
-    ).select("-__v");
+    // 4. Find role
+    const role = await Role.findById(roleId);
 
     if (!role) {
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json({
+        message: "Role not found",
+      });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Role permissions updated successfully!", role });
+    // 5. Protect admin system role
+    if (role.isSystemRole) {
+      return res.status(403).json({
+        message: "Admin system role permissions cannot be modified",
+      });
+    }
+
+    // 6. Remove duplicate permissions
+    role.permissions = [...new Set(permissions)];
+
+    await role.save();
+
+    // 7. Response
+    return res.status(200).json({
+      message: "Role permissions updated successfully",
+      role: {
+        _id: role._id,
+        name: role.name,
+        description: role.description,
+        isSystemRole: role.isSystemRole,
+        permissions: role.permissions,
+        updatedAt: role.updatedAt,
+      },
+    });
   } catch (err) {
-    console.error("updateRolePermissions error:", err.message);
+    console.error("updateRolePermission error:", err.message);
 
     return res.status(500).json({
       message: "Internal Server Error",
@@ -166,36 +231,50 @@ const updateRolePermission = async (req, res) => {
   }
 };
 
-// DELETE /api/roles/:roleName
+// DELETE /api/roles/:roleId
 const deleteRole = async (req, res) => {
   try {
-    const { roleName } = req.params;
-    const normalizedName = roleName.trim().toLowerCase();
+    const { roleId } = req.params;
 
-    const role = await Role.findOne({ name: normalizedName });
-    if (!role) {
-      return res.status(404).json({ message: "Role not found" });
+    // 1. Validate Role ID
+    if (!mongoose.isValidObjectId(roleId)) {
+      return res.status(400).json({
+        message: "Invalid role ID",
+      });
     }
 
-    // Safeguard: Cannot delete system roles (admin, etc.)
+    // 2. Find role
+    const role = await Role.findById(roleId);
+
+    if (!role) {
+      return res.status(404).json({
+        message: "Role not found",
+      });
+    }
+
+    // 3. Protect system roles
     if (role.isSystemRole) {
       return res.status(403).json({
         message: "System roles cannot be deleted",
       });
     }
 
-    // Safeguard: Cannot delete role if users are currently assigned to it
-    const assignedUsersCount = await User.countDocuments({ role: normalizedName });
+    // 4. Check assigned users
+    const assignedUsersCount = await User.countDocuments({
+      role: role._id,
+    });
+
     if (assignedUsersCount > 0) {
       return res.status(400).json({
-        message: `Cannot delete role '${normalizedName}': ${assignedUsersCount} user(s) are currently assigned this role`,
+        message: `Cannot delete role '${role.name}': ${assignedUsersCount} user(s) are currently assigned this role`,
       });
     }
 
-    await Role.findOneAndDelete({ name: normalizedName });
+    // 5. Delete role
+    await role.deleteOne();
 
     return res.status(200).json({
-      message: `Role '${normalizedName}' deleted successfully`,
+      message: `Role '${role.name}' deleted successfully`,
     });
   } catch (err) {
     console.error("deleteRole error:", err.message);
