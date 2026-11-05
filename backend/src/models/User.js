@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: [100, "Name cannot exceed 100 characters"],
     },
     email: {
       type: String,
@@ -17,12 +18,23 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minLength: 8,
+      minlength: [8, "Password must be at least 8 characters"],
+      select: false,
     },
-    role: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Role",
-      required: true,
+    avatar: {
+      type: String,
+      default: null,
+    },
+
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    status: {
+      type: String,
+      enum: ["active", "suspended", "deleted"],
+      default: "active",
+      index: true,
     },
   },
   {

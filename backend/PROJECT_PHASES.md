@@ -129,27 +129,33 @@
 
 ### Phase 4: Organization Management & Membership
 
-**Status:** ⏳ Upcoming
+**Status:** 🟡 In Progress
 
 #### 1. Scope & Goals
 
 - Introduce multi-tenancy: users can create or join organizations.
 - Data isolation: all subsequent resources (teams, projects, tasks) belong to an organization.
 - Membership model (`User` <-> `Organization`) holding organization-scoped roles.
+- Atomic Organization creation with 4 seeded system roles (`owner`, `admin`, `manager`, `member`).
 
 #### 2. Key Models
 
-- `Organization.js`: `name`, `slug`, `ownerId`, `isActive`, `timestamps`.
-- `Membership.js`: `userId`, `organizationId`, `roleId`, `status` (`active`, `invited`), `timestamps`.
+- `Organization.js`: `name`, `slug`, `description`, `createdBy`, `status`, `settings`, `timestamps`.
+- `Membership.js`: `user`, `organization`, `role`, `status` (`active`, `suspended`, `left`, `removed`), `joinedAt`, `timestamps`.
+- `Invitation.js`: `email`, `organization`, `role`, `invitedBy`, `tokenHash`, `status`, `expiresAt`, `timestamps`.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `POST /api/organizations` — Create new organization (creator automatically becomes Org Admin).
-- `GET /api/organizations` — Get organizations where current user is a member.
-- `GET /api/organizations/:orgId` — Get organization details.
-- `PATCH /api/organizations/:orgId` — Update organization details.
-- `POST /api/organizations/:orgId/members` — Invite/add member to organization.
-- `DELETE /api/organizations/:orgId/members/:userId` — Remove member from organization.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/organizations` | Authenticated | ✅ Done | Atomic Transaction (Org + 4 Roles + Owner Membership) |
+| `GET` | `/api/organizations/my` | Authenticated | ✅ Done | List active organizations for logged-in user |
+| `GET` | `/api/organizations/:orgId` | Active Member | ✅ Done | Get single organization details & user membership |
+| `POST` | `/api/invitations/organizations/:orgId` | `invitation:create` | ⏳ Active | Send invitation with hashed token & 7d expiry |
+| `GET` | `/api/invitations/organizations/:orgId` | `invitation:read` | ⏳ Active | List pending invitations for admin |
+| `POST` | `/api/invitations/:token/accept` | Authenticated | ⏳ Active | Accept invite & activate membership |
+| `POST` | `/api/invitations/:token/reject` | Authenticated | ⏳ Active | Reject invite without creating membership |
+| `DELETE` | `/api/invitations/organizations/:orgId/:invitationId` | `invitation:revoke` | ⏳ Active | Revoke pending invitation |
 
 ---
 

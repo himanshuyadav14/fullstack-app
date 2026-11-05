@@ -1,9 +1,14 @@
 const PERMISSIONS = Object.freeze({
-  // Users
+  // Users / Organization Members
   USER_READ: "user:read",
   USER_CREATE: "user:create",
   USER_UPDATE: "user:update",
   USER_DELETE: "user:delete",
+
+  // Memberships
+  MEMBER_READ: "member:read",
+  MEMBER_UPDATE: "member:update",
+  MEMBER_REMOVE: "member:remove",
 
   // Roles
   ROLE_READ: "role:read",
@@ -31,9 +36,20 @@ const PERMISSIONS = Object.freeze({
   TASK_ASSIGN: "task:assign",
 
   // Comments
+  COMMENT_READ: "comment:read",
   COMMENT_CREATE: "comment:create",
   COMMENT_UPDATE: "comment:update",
   COMMENT_DELETE: "comment:delete",
+
+  // Organization
+  ORGANIZATION_READ: "organization:read",
+  ORGANIZATION_UPDATE: "organization:update",
+  ORGANIZATION_DELETE: "organization:delete",
+
+  // Invitations
+  INVITATION_READ: "invitation:read",
+  INVITATION_CREATE: "invitation:create",
+  INVITATION_REVOKE: "invitation:revoke",
 });
 
 module.exports = PERMISSIONS;

@@ -8,6 +8,7 @@ const seedRoles = require("./seed/seedRoles");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const roleRoutes = require("./routes/roleRoutes");
+const organizationRoutes = require("./routes/organizationRoutes");
 
 const app = express();
 
@@ -16,11 +17,11 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/roles", roleRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 const startServer = async () => {
   try {
     await dbConnect();
-    await seedRoles();
     const PORT = process.env.PORT;
     app.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);

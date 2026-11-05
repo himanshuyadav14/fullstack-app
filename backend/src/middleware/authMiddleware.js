@@ -6,6 +6,7 @@ const authMiddleware = (req, res, next) => {
 
     if (!bearerToken || !bearerToken.startsWith("Bearer ")) {
       return res.status(401).json({
+        success: false,
         message: "Token is missing or invalid",
       });
     }
@@ -13,22 +14,31 @@ const authMiddleware = (req, res, next) => {
     const token = bearerToken.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "Token is missing" });
+      return res.status(401).json({
+        success: false,
+        message: "Token is missing",
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded.id || !decoded.role) {
+    if (!decoded.id) {
       return res.status(401).json({
+        success: false,
         message: "Invalid token payload",
       });
     }
 
-    req.user = decoded;
+    req.user = {
+      id: decoded.id,
+    };
 
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
   }
 };
 

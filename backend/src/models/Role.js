@@ -6,14 +6,20 @@ const RoleSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
+      maxlength: [50, "Role name cannot exceed 50 characters"],
     },
     description: {
       type: String,
       trim: true,
+      maxlength: [200, "Description cannot exceed 200 characters"],
       default: "",
+    },
+    organization: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      required: true,
     },
     isSystemRole: {
       type: Boolean,
@@ -31,6 +37,12 @@ const RoleSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// Role names must be unique within an organization
+RoleSchema.index({ organization: 1, name: 1 }, { unique: true });
+
+// Useful for fetching system roles within an organization
+RoleSchema.index({ organization: 1, isSystemRole: 1 });
 
 const Role = mongoose.model("Role", RoleSchema);
 module.exports = Role;
