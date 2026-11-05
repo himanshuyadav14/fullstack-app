@@ -23,7 +23,7 @@
 | **Phase 1**  | **Core Setup & Authentication**                |  ✅ **Completed**  | Server setup, DB connection, JWT auth, signup/login/getMe, initial seed                |
 | **Phase 2**  | **User Management CRUD**                       |  ✅ **Completed**  | Get users, update user role, update profile, delete/deactivate user                    |
 | **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ✅ **Completed**  | Full role CRUD, dynamic permissions registry, role safeguards & dynamic enums removed  |
-| **Phase 4**  | **Organization & Membership**                  |  ⏳ **Upcoming**   | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
+| **Phase 4**  | **Organization & Membership**                  |  ✅ **Completed**  | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
 | **Phase 5**  | **Team Management**                            |  ⏳ **Upcoming**   | Teams under organizations, team managers, members, team scoping                        |
 | **Phase 6**  | **Project Management**                         |  ⏳ **Upcoming**   | Projects under organizations, project assignments, status tracking, filters            |
 | **Phase 7**  | **Task Management & Assignments**              |  ⏳ **Upcoming**   | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
@@ -129,7 +129,7 @@
 
 ### Phase 4: Organization Management & Membership
 
-**Status:** 🟡 In Progress
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
@@ -137,6 +137,7 @@
 - Data isolation: all subsequent resources (teams, projects, tasks) belong to an organization.
 - Membership model (`User` <-> `Organization`) holding organization-scoped roles.
 - Atomic Organization creation with 4 seeded system roles (`owner`, `admin`, `manager`, `member`).
+- Complete Member Management: Listing members, role updates with privilege safeguards, kicks, voluntary leaves, and atomic ownership transfers.
 
 #### 2. Key Models
 
@@ -151,6 +152,11 @@
 | `POST` | `/api/organizations` | Authenticated | ✅ Done | Atomic Transaction (Org + 4 Roles + Owner Membership) |
 | `GET` | `/api/organizations/my` | Authenticated | ✅ Done | List active organizations for logged-in user |
 | `GET` | `/api/organizations/:orgId` | Active Member | ✅ Done | Get single organization details & user membership |
+| `GET` | `/api/organizations/:orgId/members` | `member:read` | ✅ Done | Paginated list of members with search & role info |
+| `PATCH` | `/api/organizations/:orgId/members/:memberId/role` | `member:update` | ✅ Done | Role update with privilege escalation & owner safeguards |
+| `DELETE` | `/api/organizations/:orgId/members/:memberId` | `member:remove` | ✅ Done | Kick member (Owner/Admin protection safeguards) |
+| `POST` | `/api/organizations/:orgId/leave` | Active Member | ✅ Done | Voluntarily leave organization (Owner prevented) |
+| `POST` | `/api/organizations/:orgId/transfer-ownership` | Owner Only | ✅ Done | Atomic transaction transferring ownership to active member |
 | `POST` | `/api/organizations/:orgId/invitations` | `invitation:create` | ✅ Done | Sends invitation email with SHA-256 hashed token & 7d expiry |
 | `GET` | `/api/organizations/:orgId/invitations` | `invitation:read` | ✅ Done | Paginated list of invitations for admin |
 | `DELETE` | `/api/organizations/:orgId/invitations/:invitationId` | `invitation:revoke` | ✅ Done | Atomically revokes a pending invitation |

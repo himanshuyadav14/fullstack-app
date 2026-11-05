@@ -11,23 +11,38 @@ const {
   revokeInvitation,
 } = require("../controllers/invitationController");
 
+const {
+  getOrganizationMembers,
+  updateMemberRole,
+  removeMember,
+  leaveOrganization,
+  transferOwnership,
+} = require("../controllers/memberController");
+
 const authMiddleware = require("../middleware/authMiddleware");
+const {
+  requireOrgPermission,
+  requireMembership,
+} = require("../middleware/requireMembership");
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authMiddleware);
 
-// Get all organizations where the logged-in user is an active member
+// Organization Core
 router.get("/my", getMyOrganizations);
-
-// Create a new organization (User becomes initial Owner)
 router.post("/", createMyOrganization);
-
-// Get single organization by ID (Must be an active member)
 router.get("/:orgId", getOrganizationById);
 
-// Organization Invitations (Owner / Admin with invitation permissions)
+// Member Management
+router.get("/:orgId/members", requireOrgPermission("member:read"), getOrganizationMembers);
+router.patch("/:orgId/members/:memberId/role", requireOrgPermission("member:update"), updateMemberRole);
+router.delete("/:orgId/members/:memberId", requireOrgPermission("member:remove"), removeMember);
+router.post("/:orgId/leave", requireMembership, leaveOrganization);
+router.post("/:orgId/transfer-ownership", requireMembership, transferOwnership);
+
+// Organization Invitations
 router.post("/:orgId/invitations", inviteMember);
 router.get("/:orgId/invitations", getOrganizationInvitations);
 router.delete("/:orgId/invitations/:invitationId", revokeInvitation);
