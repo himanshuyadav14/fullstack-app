@@ -30,6 +30,14 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verificationTokenHash: {
+      type: String,
+      select: false,
+    },
+    verificationTokenExpiresAt: {
+      type: Date,
+      select: false,
+    },
     status: {
       type: String,
       enum: ["active", "suspended", "deleted"],

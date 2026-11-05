@@ -26,7 +26,11 @@ const getAllPermissions = async (req, res) => {
 // GET /api/roles
 const getRoles = async (req, res) => {
   try {
-    const roles = await Role.find({}).select("-__v").sort({ name: 1 });
+    const filter = req.query.organizationId
+      ? { organization: req.query.organizationId }
+      : {};
+
+    const roles = await Role.find(filter).select("-__v").sort({ name: 1 });
 
     return res.status(200).json({
       message: "Roles fetched successfully",

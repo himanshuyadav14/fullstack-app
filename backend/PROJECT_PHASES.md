@@ -151,11 +151,14 @@
 | `POST` | `/api/organizations` | Authenticated | ✅ Done | Atomic Transaction (Org + 4 Roles + Owner Membership) |
 | `GET` | `/api/organizations/my` | Authenticated | ✅ Done | List active organizations for logged-in user |
 | `GET` | `/api/organizations/:orgId` | Active Member | ✅ Done | Get single organization details & user membership |
-| `POST` | `/api/invitations/organizations/:orgId` | `invitation:create` | ⏳ Active | Send invitation with hashed token & 7d expiry |
-| `GET` | `/api/invitations/organizations/:orgId` | `invitation:read` | ⏳ Active | List pending invitations for admin |
-| `POST` | `/api/invitations/:token/accept` | Authenticated | ⏳ Active | Accept invite & activate membership |
-| `POST` | `/api/invitations/:token/reject` | Authenticated | ⏳ Active | Reject invite without creating membership |
-| `DELETE` | `/api/invitations/organizations/:orgId/:invitationId` | `invitation:revoke` | ⏳ Active | Revoke pending invitation |
+| `POST` | `/api/organizations/:orgId/invitations` | `invitation:create` | ✅ Done | Sends invitation email with SHA-256 hashed token & 7d expiry |
+| `GET` | `/api/organizations/:orgId/invitations` | `invitation:read` | ✅ Done | Paginated list of invitations for admin |
+| `DELETE` | `/api/organizations/:orgId/invitations/:invitationId` | `invitation:revoke` | ✅ Done | Atomically revokes a pending invitation |
+| `GET` | `/api/invitations/my` | Authenticated | ✅ Done | Lists pending invitations sent to authenticated user's email |
+| `POST` | `/api/invitations/accept` | Authenticated | ✅ Done | Body token acceptance via atomic state transition & transaction |
+| `POST` | `/api/invitations/reject` | Authenticated | ✅ Done | Body token rejection with expiry validation & atomic update |
+| `POST` | `/api/auth/verify-email` | Public | ✅ Done | Verifies user email via token or developer bypass |
+| `POST` | `/api/auth/resend-verification` | Authenticated/Public | ✅ Done | Resends email verification link via Gmail SMTP |
 
 ---
 

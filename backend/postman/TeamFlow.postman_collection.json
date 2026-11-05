@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "TeamFlow SaaS API",
-    "description": "Comprehensive Postman collection for TeamFlow multi-tenant project management backend with automatic token handling and environment variables.",
+    "description": "Comprehensive Postman collection for TeamFlow multi-tenant project management backend with automatic token, orgId, and invitation handling.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -19,7 +19,7 @@
       "name": "1. Authentication",
       "item": [
         {
-          "name": "Signup User",
+          "name": "Signup User (Owner / Inviter)",
           "event": [
             {
               "listen": "test",
@@ -32,6 +32,10 @@
                   "    }",
                   "    if (res.user && res.user.id) {",
                   "        pm.environment.set('userId', res.user.id);",
+                  "    }",
+                  "    if (res.verificationToken) {",
+                  "        pm.environment.set('verificationToken', res.verificationToken);",
+                  "        console.log('✅ verificationToken saved:', res.verificationToken);",
                   "    }",
                   "}"
                 ],
@@ -52,7 +56,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Himanshu Yadav\",\n  \"email\": \"himanshu@quantaraai.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"name\": \"Himanshu Yadav\",\n  \"email\": \"himyadav.yh@gmail.com\",\n  \"password\": \"Password123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/signup",
@@ -68,7 +72,37 @@
           }
         },
         {
-          "name": "Login User",
+          "name": "Verify Email (Owner)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login User (Owner)",
           "event": [
             {
               "listen": "test",
@@ -102,7 +136,134 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"himanshu@quantaraai.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"email\": \"himyadav.yh@gmail.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Signup Second User (Invitee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.token) {",
+                  "        pm.environment.set('token', res.token);",
+                  "    }",
+                  "    if (res.verificationToken) {",
+                  "        pm.environment.set('verificationToken', res.verificationToken);",
+                  "        console.log('✅ verificationToken saved for Invitee:', res.verificationToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Sharma\",\n  \"email\": \"hyadav@quantaraai.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Email (Invitee)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Second User (Invitee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.token) {",
+                  "        pm.environment.set('token', res.token);",
+                  "        console.log('✅ Invitee Token automatically saved!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hyadav@quantaraai.com\",\n  \"password\": \"Password123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -215,7 +376,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Himanshu Yadav (Lead)\"\n}"
+              "raw": "{\n  \"name\": \"Himanshu Yadav (Founder)\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/users/profile",
@@ -290,7 +451,7 @@
           }
         },
         {
-          "name": "Get All Roles",
+          "name": "Get Organization Roles",
           "event": [
             {
               "listen": "test",
@@ -299,7 +460,10 @@
                   "if (pm.response.code === 200) {",
                   "    const res = pm.response.json();",
                   "    if (res.roles && res.roles.length > 0) {",
-                  "        pm.environment.set('roleId', res.roles[0]._id);",
+                  "        // Find member role for invitation",
+                  "        const memberRole = res.roles.find(r => r.name === 'member') || res.roles[0];",
+                  "        pm.environment.set('roleId', memberRole._id);",
+                  "        console.log('✅ roleId set to:', memberRole.name, memberRole._id);",
                   "    }",
                   "}"
                 ],
@@ -311,13 +475,19 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/roles",
+              "raw": "{{baseUrl}}/api/roles?organizationId={{orgId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "roles"
+              ],
+              "query": [
+                {
+                  "key": "organizationId",
+                  "value": "{{orgId}}"
+                }
               ]
             }
           }
@@ -350,7 +520,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"designer\",\n  \"description\": \"Product UI/UX Designer\",\n  \"permissions\": [\n    \"project:read\",\n    \"task:read\",\n    \"comment:read\",\n    \"comment:create\"\n  ]\n}"
+              "raw": "{\n  \"name\": \"designer\",\n  \"description\": \"Product UI/UX Designer\",\n  \"organization\": \"{{orgId}}\",\n  \"permissions\": [\n    \"project:read\",\n    \"task:read\",\n    \"comment:read\",\n    \"comment:create\"\n  ]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/roles",
@@ -495,7 +665,193 @@
           }
         }
       ]
+    },
+    {
+      "name": "5. Invitations (Workspace Members)",
+      "item": [
+        {
+          "name": "Send Invitation to Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.invitationId) {",
+                  "        pm.environment.set('invitationId', res.data.invitationId);",
+                  "        console.log('✅ invitationId saved:', res.data.invitationId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hyadav@quantaraai.com\",\n  \"roleId\": \"{{roleId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Organization Invitations (Paginated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        pm.environment.set('invitationId', res.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Pending Invitations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "my"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Invitation (Run as Invitee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "accept"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Invitation (Run as Invitee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "reject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revoke Invitation (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/invitations/{{invitationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "invitations",
+                "{{invitationId}}"
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
-
