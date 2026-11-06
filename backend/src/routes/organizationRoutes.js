@@ -19,6 +19,9 @@ const {
   transferOwnership,
 } = require("../controllers/memberController");
 
+const teamRoutes = require("./teamRoutes");
+const projectRoutes = require("./projectRoutes");
+
 const authMiddleware = require("../middleware/authMiddleware");
 const {
   requireOrgPermission,
@@ -46,5 +49,11 @@ router.post("/:orgId/transfer-ownership", requireMembership, transferOwnership);
 router.post("/:orgId/invitations", inviteMember);
 router.get("/:orgId/invitations", getOrganizationInvitations);
 router.delete("/:orgId/invitations/:invitationId", revokeInvitation);
+
+// Teams Management (Phase 5)
+router.use("/:orgId/teams", teamRoutes);
+
+// Projects Management (Phase 6)
+router.use("/:orgId/projects", projectRoutes);
 
 module.exports = router;

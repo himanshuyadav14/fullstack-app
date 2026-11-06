@@ -24,8 +24,8 @@
 | **Phase 2**  | **User Management CRUD**                       |  ✅ **Completed**  | Get users, update user role, update profile, delete/deactivate user                    |
 | **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ✅ **Completed**  | Full role CRUD, dynamic permissions registry, role safeguards & dynamic enums removed  |
 | **Phase 4**  | **Organization & Membership**                  |  ✅ **Completed**  | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
-| **Phase 5**  | **Team Management**                            |  ⏳ **Upcoming**   | Teams under organizations, team managers, members, team scoping                        |
-| **Phase 6**  | **Project Management**                         |  ⏳ **Upcoming**   | Projects under organizations, project assignments, status tracking, filters            |
+| **Phase 5**  | **Team Management**                            |  ✅ **Completed**  | Teams under organizations, team managers, members, team scoping                        |
+| **Phase 6**  | **Project Management**                         |  ✅ **Completed**  | Projects under organizations, project assignments, status tracking, filters            |
 | **Phase 7**  | **Task Management & Assignments**              |  ⏳ **Upcoming**   | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
 | **Phase 8**  | **Comments Module**                            |  ⏳ **Upcoming**   | Task comments, editing, deletion with ownership checks                                 |
 | **Phase 9**  | **File Uploads (Cloudinary)**                  |  ⏳ **Upcoming**   | Avatars, task attachments, file validation, storage metadata in DB                     |
@@ -170,50 +170,60 @@
 
 ### Phase 5: Team Management
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
 - Teams organized within organizations (e.g., Engineering, Marketing, Design).
-- Team leaders/managers and member associations.
+- Team leaders/managers and member associations with strict organization-membership checks.
+- Compound unique index (`{ organization: 1, name: 1 }`) ensuring unique team names within an organization.
+- Dedicated member management: adding members, self-leaving, removal, and lead transfer.
 
 #### 2. Key Models
 
-- `Team.js`: `name`, `description`, `organizationId`, `managerId`, `members: [userId]`, `timestamps`.
+- `Team.js`: `name`, `description`, `organization`, `lead`, `members: [userId]`, `createdBy`, `timestamps`.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `POST /api/organizations/:orgId/teams` — Create team.
-- `GET /api/organizations/:orgId/teams` — List teams for organization.
-- `GET /api/organizations/:orgId/teams/:teamId` — Team details with members.
-- `PATCH /api/organizations/:orgId/teams/:teamId` — Update team info/manager.
-- `POST /api/organizations/:orgId/teams/:teamId/members` — Add members to team.
-- `DELETE /api/organizations/:orgId/teams/:teamId/members/:userId` — Remove member.
-- `DELETE /api/organizations/:orgId/teams/:teamId` — Delete team.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/organizations/:orgId/teams` | `team:create` | ✅ Done | Create new team with optional lead and member list |
+| `GET` | `/api/organizations/:orgId/teams` | `team:read` | ✅ Done | Paginated list of teams with member count, lead, and filters |
+| `GET` | `/api/organizations/:orgId/teams/:teamId` | `team:read` | ✅ Done | Detailed team view with populated lead and full members |
+| `PATCH` | `/api/organizations/:orgId/teams/:teamId` | `team:update` / Lead | ✅ Done | Update team info (name, description, lead assignment) |
+| `POST` | `/api/organizations/:orgId/teams/:teamId/members` | `team:update` / Lead | ✅ Done | Add active organization members to team |
+| `DELETE` | `/api/organizations/:orgId/teams/:teamId/members/:userId` | `team:update` / Lead / Self | ✅ Done | Remove member from team or voluntary team leave |
+| `DELETE` | `/api/organizations/:orgId/teams/:teamId` | `team:delete` | ✅ Done | Delete team from organization |
 
 ---
 
 ### Phase 6: Project Management
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
 - Projects scoped to organizations and linked to teams.
-- Project status (`planning`, `active`, `completed`, `on_hold`).
-- Date tracking (start date, due date).
+- Project status (`planning`, `active`, `on_hold`, `completed`, `cancelled`) and priority (`low`, `medium`, `high`, `urgent`).
+- Unique uppercase project key per organization (e.g., `TF`, `PROJ`) with compound unique index `{ organization: 1, key: 1 }`.
+- Date tracking (start date, due date) with boundary validation (`dueDate >= startDate`).
+- Dedicated project member management: assigning team, lead, contributors, and self-leave.
 
 #### 2. Key Models
 
-- `Project.js`: `name`, `key`, `description`, `organizationId`, `teamId`, `members: [userId]`, `status`, `startDate`, `dueDate`, `timestamps`.
+- `Project.js`: `name`, `key`, `description`, `organization`, `team`, `lead`, `members: [userId]`, `status`, `priority`, `startDate`, `dueDate`, `createdBy`, `timestamps`.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `POST /api/organizations/:orgId/projects` — Create project.
-- `GET /api/organizations/:orgId/projects` — List projects (with search, pagination, status filters).
-- `GET /api/organizations/:orgId/projects/:projectId` — Project details.
-- `PATCH /api/organizations/:orgId/projects/:projectId` — Update project.
-- `DELETE /api/organizations/:orgId/projects/:projectId` — Delete project.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/organizations/:orgId/projects` | `project:create` | ✅ Done | Create project with key, optional team, lead, members, dates |
+| `GET` | `/api/organizations/:orgId/projects` | `project:read` | ✅ Done | List projects with filters (team, status, priority, search, myProjects) |
+| `GET` | `/api/organizations/:orgId/projects/:projectId` | `project:read` | ✅ Done | Project details with populated team, lead, and contributors |
+| `PATCH` | `/api/organizations/:orgId/projects/:projectId` | `project:update` / Lead | ✅ Done | Update project info, dates, status, priority, team, lead |
+| `POST` | `/api/organizations/:orgId/projects/:projectId/members` | `project:update` / Lead | ✅ Done | Add active organization members to project |
+| `DELETE` | `/api/organizations/:orgId/projects/:projectId/members/:userId` | `project:update` / Lead / Self | ✅ Done | Remove contributor or self-leave from project |
+| `DELETE` | `/api/organizations/:orgId/projects/:projectId` | `project:delete` | ✅ Done | Delete project from organization |
 
 ---
 

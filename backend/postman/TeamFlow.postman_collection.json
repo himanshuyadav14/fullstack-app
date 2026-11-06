@@ -999,6 +999,438 @@
           }
         }
       ]
+    },
+    {
+      "name": "6. Teams Management",
+      "item": [
+        {
+          "name": "Create Team",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data._id) {",
+                  "        pm.environment.set('teamId', res.data._id);",
+                  "        console.log('✅ teamId saved:', res.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering Team\",\n  \"description\": \"Core platform and API engineering\",\n  \"leadId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Organization Teams (Paginated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        pm.environment.set('teamId', res.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Team By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams/{{teamId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams",
+                "{{teamId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Team Info / Lead",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated core platform engineering and backend development\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams/{{teamId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams",
+                "{{teamId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Member to Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{targetUserId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams/{{teamId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams",
+                "{{teamId}}",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Member from Team",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams/{{teamId}}/members/{{targetUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams",
+                "{{teamId}}",
+                "members",
+                "{{targetUserId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Team",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/teams/{{teamId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "teams",
+                "{{teamId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Projects Management",
+      "item": [
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data._id) {",
+                  "        pm.environment.set('projectId', res.data._id);",
+                  "        console.log('✅ projectId saved:', res.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TeamFlow SaaS Core\",\n  \"key\": \"TF\",\n  \"description\": \"Multi-tenant project management backend and API infrastructure\",\n  \"teamId\": \"{{teamId}}\",\n  \"leadId\": \"{{userId}}\",\n  \"status\": \"active\",\n  \"priority\": \"high\",\n  \"startDate\": \"2026-11-01T00:00:00.000Z\",\n  \"dueDate\": \"2026-12-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Organization Projects (Paginated & Filtered)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        pm.environment.set('projectId', res.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Project By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Project Info",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated project description with sprint milestones\",\n  \"priority\": \"urgent\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Member to Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{targetUserId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "members"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Member from Project",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/members/{{targetUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}",
+                "members",
+                "{{targetUserId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "projects",
+                "{{projectId}}"
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
