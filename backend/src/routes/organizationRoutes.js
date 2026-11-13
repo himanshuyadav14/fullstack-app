@@ -21,6 +21,7 @@ const {
 
 const teamRoutes = require("./teamRoutes");
 const projectRoutes = require("./projectRoutes");
+const taskRoutes = require("./taskRoutes");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const {
@@ -55,5 +56,8 @@ router.use("/:orgId/teams", teamRoutes);
 
 // Projects Management (Phase 6)
 router.use("/:orgId/projects", projectRoutes);
+
+// Tasks Management (Phase 7)
+router.use("/:orgId/tasks", taskRoutes);
 
 module.exports = router;

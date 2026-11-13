@@ -26,7 +26,7 @@
 | **Phase 4**  | **Organization & Membership**                  |  ✅ **Completed**  | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
 | **Phase 5**  | **Team Management**                            |  ✅ **Completed**  | Teams under organizations, team managers, members, team scoping                        |
 | **Phase 6**  | **Project Management**                         |  ✅ **Completed**  | Projects under organizations, project assignments, status tracking, filters            |
-| **Phase 7**  | **Task Management & Assignments**              |  ⏳ **Upcoming**   | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
+| **Phase 7**  | **Task Management & Assignments**              |  ✅ **Completed**  | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
 | **Phase 8**  | **Comments Module**                            |  ⏳ **Upcoming**   | Task comments, editing, deletion with ownership checks                                 |
 | **Phase 9**  | **File Uploads (Cloudinary)**                  |  ⏳ **Upcoming**   | Avatars, task attachments, file validation, storage metadata in DB                     |
 | **Phase 10** | **Notifications System**                       |  ⏳ **Upcoming**   | In-app notification triggers, read status, pagination                                  |
@@ -229,26 +229,31 @@
 
 ### Phase 7: Task Management & Assignments
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- Core work unit: tasks associated with projects and teams.
-- Attributes: Title, description, status (`todo`, `in_progress`, `in_review`, `completed`), priority (`low`, `medium`, `high`, `urgent`), assignee, reporter, due date.
-- Advanced querying: filtering by assignee, status, priority, due date; pagination; sorting.
+- Core work unit: tasks associated with projects and teams with auto-incrementing task keys (e.g. `TF-1`, `TF-2`).
+- Attributes: Title, description (Markdown), status (`todo`, `in_progress`, `in_review`, `done`, `cancelled`), priority (`low`, `medium`, `high`, `urgent`), assignee, reporter, start date, due date, estimated hours, order, tags.
+- Advanced querying: filtering by assignee, status, priority, search; pagination; Kanban column grouping.
+- Concurrency protection: Atomic `$inc: { taskCounter: 1 }` on Project to guarantee unique sequential task keys under heavy load.
 
 #### 2. Key Models
 
-- `Task.js`: `title`, `description`, `projectId`, `teamId`, `organizationId`, `status`, `priority`, `assigneeId`, `reporterId`, `dueDate`, `startDate`, `attachments`, `timestamps`.
+- `Task.js`: `title`, `taskKey`, `description`, `organization`, `project`, `team`, `status`, `priority`, `assignee`, `reporter`, `startDate`, `dueDate`, `estimatedHours`, `order`, `tags`, `timestamps`.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `POST /api/projects/:projectId/tasks` — Create task.
-- `GET /api/projects/:projectId/tasks` — List tasks with filters & pagination.
-- `GET /api/tasks/:taskId` — Get single task details.
-- `PATCH /api/tasks/:taskId` — Update task details / status.
-- `PATCH /api/tasks/:taskId/assign` — Assign or reassign task.
-- `DELETE /api/tasks/:taskId` — Delete task.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/organizations/:orgId/projects/:projectId/tasks` | `task:create` | ✅ Done | Create task with auto-generated atomic `TF-1` sequential key |
+| `GET` | `/api/organizations/:orgId/projects/:projectId/tasks` | `task:read` | ✅ Done | Project Kanban board grouped by column status and order |
+| `GET` | `/api/organizations/:orgId/tasks` | `task:read` | ✅ Done | Organization-wide task list with filters (assignee, status, priority, search) |
+| `GET` | `/api/organizations/:orgId/tasks/:taskId` | `task:read` | ✅ Done | Single task detailed view with populated project, team, assignee, reporter |
+| `PATCH` | `/api/organizations/:orgId/tasks/:taskId` | `task:update` / Assignee | ✅ Done | Update task metadata, description, dates, priority, tags |
+| `PATCH` | `/api/organizations/:orgId/tasks/:taskId/status` | `task:update` / Assignee | ✅ Done | Fast status workflow transition (`todo` -> `in_progress` -> `done`) |
+| `PATCH` | `/api/organizations/:orgId/tasks/:taskId/assign` | `task:assign` | ✅ Done | Reassign task to verified active organization member |
+| `DELETE` | `/api/organizations/:orgId/tasks/:taskId` | `task:delete` / Reporter | ✅ Done | Delete task from organization |
 
 ---
 

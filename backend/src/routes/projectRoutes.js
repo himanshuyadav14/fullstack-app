@@ -10,6 +10,11 @@ const {
 } = require("../controllers/projectController");
 
 const {
+  createTask,
+  getProjectKanbanTasks,
+} = require("../controllers/taskController");
+
+const {
   requireOrgPermission,
   requireMembership,
 } = require("../middleware/requireMembership");
@@ -29,6 +34,10 @@ router.delete("/:projectId", requireOrgPermission("project:delete"), deleteProje
 // Project Members Management
 router.post("/:projectId/members", addProjectMembers);
 router.delete("/:projectId/members/:userId", removeProjectMember);
+
+// Project Tasks & Kanban Board
+router.post("/:projectId/tasks", requireOrgPermission("task:create"), createTask);
+router.get("/:projectId/tasks", requireOrgPermission("task:read"), getProjectKanbanTasks);
 
 module.exports = router;
 

@@ -70,6 +70,10 @@ const ProjectSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    taskCounter: {
+      type: Number,
+      default: 0,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
