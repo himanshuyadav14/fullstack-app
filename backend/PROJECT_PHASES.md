@@ -27,7 +27,7 @@
 | **Phase 5**  | **Team Management**                            |  ✅ **Completed**  | Teams under organizations, team managers, members, team scoping                        |
 | **Phase 6**  | **Project Management**                         |  ✅ **Completed**  | Projects under organizations, project assignments, status tracking, filters            |
 | **Phase 7**  | **Task Management & Assignments**              |  ✅ **Completed**  | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
-| **Phase 8**  | **Comments Module**                            |  ⏳ **Upcoming**   | Task comments, editing, deletion with ownership checks                                 |
+| **Phase 8**  | **Comments Module**                            |  ✅ **Completed**  | Task comments, editing, deletion with ownership checks                                 |
 | **Phase 9**  | **File Uploads (Cloudinary)**                  |  ⏳ **Upcoming**   | Avatars, task attachments, file validation, storage metadata in DB                     |
 | **Phase 10** | **Notifications System**                       |  ⏳ **Upcoming**   | In-app notification triggers, read status, pagination                                  |
 | **Phase 11** | **Real-time WebSockets (Socket.IO)**           |  ⏳ **Upcoming**   | Authenticated socket connections, live updates for tasks/comments/notifications        |
@@ -259,23 +259,26 @@
 
 ### Phase 8: Comments Module
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- Discussions on tasks with author attribution, timestamps, edit history.
-- Authorization: only author or authorized admin can edit/delete comments.
+- Discussions on tasks with author attribution, timestamps, and edit history tracking (`isEdited`, `editedAt`).
+- Authorization & Security: only the original author can edit their comment; author, organization owner, or administrator can delete comments.
+- Multi-tenant data isolation: Compound indexes on `{ task: 1, createdAt: 1 }` and `{ organization: 1, task: 1 }`.
 
 #### 2. Key Models
 
-- `Comment.js`: `taskId`, `authorId`, `content`, `isEdited`, `timestamps`.
+- `Comment.js`: `content`, `task`, `organization`, `author`, `isEdited`, `editedAt`, `timestamps`.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `POST /api/tasks/:taskId/comments` — Add comment.
-- `GET /api/tasks/:taskId/comments` — List comments for task.
-- `PATCH /api/comments/:commentId` — Edit own comment.
-- `DELETE /api/comments/:commentId` — Delete comment.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/organizations/:orgId/tasks/:taskId/comments` | `comment:create` | ✅ Done | Add comment to a task (up to 5,000 characters) |
+| `GET` | `/api/organizations/:orgId/tasks/:taskId/comments` | `comment:read` | ✅ Done | Chronological list of task comments with author details |
+| `PATCH` | `/api/organizations/:orgId/tasks/:taskId/comments/:commentId` | Author Only | ✅ Done | Edit own comment (marks `isEdited: true` and updates `editedAt`) |
+| `DELETE` | `/api/organizations/:orgId/tasks/:taskId/comments/:commentId` | Author / Admin / Owner | ✅ Done | Delete comment from task discussion |
 
 ---
 

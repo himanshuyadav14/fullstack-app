@@ -1678,6 +1678,158 @@
           }
         }
       ]
+    },
+    {
+      "name": "9. Task Comments & Discussions",
+      "item": [
+        {
+          "name": "Add Comment to Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data._id) {",
+                  "        pm.environment.set('commentId', res.data._id);",
+                  "        console.log('✅ commentId saved:', res.data._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"I have completed the JWT middleware and unit tests. Ready for review.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/tasks/{{taskId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "tasks",
+                "{{taskId}}",
+                "comments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Task Comments (Chronological)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.data && res.data.length > 0) {",
+                  "        pm.environment.set('commentId', res.data[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/tasks/{{taskId}}/comments?page=1&limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "tasks",
+                "{{taskId}}",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Comment (Author Only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"I have completed the JWT middleware, unit tests, and OpenAPI documentation. Ready for PR review.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/tasks/{{taskId}}/comments/{{commentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "tasks",
+                "{{taskId}}",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Comment (Author or Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/tasks/{{taskId}}/comments/{{commentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "organizations",
+                "{{orgId}}",
+                "tasks",
+                "{{taskId}}",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
