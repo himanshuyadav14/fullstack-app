@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizePermission = require("../middleware/authorizePermission");
+const { uploadAvatarMiddleware } = require("../middleware/uploadMiddleware");
 
 const {
   getAllUsers,
@@ -11,16 +12,18 @@ const {
   deleteUser,
   updateUserProfile,
   deleteOwnAccount,
+  uploadUserAvatar,
+  deleteUserAvatar,
 } = require("../controllers/userController");
 
 // Get all users
 router.get("/", authMiddleware, authorizePermission("user:read"), getAllUsers);
 
-// Update logged-in user's own profile
+// Profile Management
 router.patch("/profile", authMiddleware, updateUserProfile);
-
-// Delete own account
 router.delete("/profile", authMiddleware, deleteOwnAccount);
+router.post("/profile/avatar", authMiddleware, uploadAvatarMiddleware, uploadUserAvatar);
+router.delete("/profile/avatar", authMiddleware, deleteUserAvatar);
 
 // Get user by ID
 router.get(

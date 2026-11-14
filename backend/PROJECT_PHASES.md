@@ -28,7 +28,7 @@
 | **Phase 6**  | **Project Management**                         |  ✅ **Completed**  | Projects under organizations, project assignments, status tracking, filters            |
 | **Phase 7**  | **Task Management & Assignments**              |  ✅ **Completed**  | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
 | **Phase 8**  | **Comments Module**                            |  ✅ **Completed**  | Task comments, editing, deletion with ownership checks                                 |
-| **Phase 9**  | **File Uploads (Cloudinary)**                  |  ⏳ **Upcoming**   | Avatars, task attachments, file validation, storage metadata in DB                     |
+| **Phase 9**  | **File Uploads (Cloudinary)**                  |  ✅ **Completed**  | Avatars, task attachments, file validation, storage metadata in DB                     |
 | **Phase 10** | **Notifications System**                       |  ⏳ **Upcoming**   | In-app notification triggers, read status, pagination                                  |
 | **Phase 11** | **Real-time WebSockets (Socket.IO)**           |  ⏳ **Upcoming**   | Authenticated socket connections, live updates for tasks/comments/notifications        |
 | **Phase 12** | **Dashboard & Analytics**                      |  ⏳ **Upcoming**   | Org/team/user metrics, task status breakdown, overdue analytics                        |
@@ -284,19 +284,27 @@
 
 ### Phase 9: File Upload (Cloudinary)
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- User avatars and task attachments.
-- Secure upload handling, validation of file size and MIME types.
-- Cloudinary asset cleanup on resource deletion.
+- User avatars and task attachments with direct streaming from memory buffers to Cloudinary CDN (no local disk storage).
+- Security & Validation: 5MB file size limit, strict MIME type filtering (JPEG/PNG/WEBP for avatars, images + documents/ZIP for task attachments).
+- Automatic asset cleanup: Deleting or replacing avatars/attachments destroys the previous asset in Cloudinary to avoid orphaned storage.
 
-#### 2. Planned Endpoints
+#### 2. Key Models
 
-- `POST /api/users/avatar` — Upload and update user profile picture.
-- `POST /api/tasks/:taskId/attachments` — Upload attachments to a task.
-- `DELETE /api/tasks/:taskId/attachments/:attachmentId` — Remove attachment.
+- `User.js`: `avatar` (URL), `avatarPublicId` (Cloudinary public ID).
+- `Task.js`: `attachments: [{ originalName, url, publicId, fileType, fileSize, uploadedBy, uploadedAt }]`.
+
+#### 3. Endpoints Summary
+
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `POST` | `/api/users/profile/avatar` | Authenticated | ✅ Done | Upload/replace user avatar image on Cloudinary |
+| `DELETE` | `/api/users/profile/avatar` | Authenticated | ✅ Done | Remove user avatar and destroy asset from Cloudinary |
+| `POST` | `/api/organizations/:orgId/tasks/:taskId/attachments` | `task:update` / Assignee | ✅ Done | Upload file attachment to task via Cloudinary |
+| `DELETE` | `/api/organizations/:orgId/tasks/:taskId/attachments/:attachmentId` | Uploader / Admin / Owner | ✅ Done | Delete attachment from task and destroy asset from Cloudinary |
 
 ---
 

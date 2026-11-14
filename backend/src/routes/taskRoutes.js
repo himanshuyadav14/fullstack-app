@@ -6,12 +6,15 @@ const {
   updateTaskStatus,
   assignTask,
   deleteTask,
+  uploadTaskAttachment,
+  deleteTaskAttachment,
 } = require("../controllers/taskController");
 
 const {
   requireOrgPermission,
   requireMembership,
 } = require("../middleware/requireMembership");
+const { uploadAttachmentMiddleware } = require("../middleware/uploadMiddleware");
 
 const commentRoutes = require("./commentRoutes");
 
@@ -27,6 +30,10 @@ router.patch("/:taskId", updateTask);
 router.patch("/:taskId/status", updateTaskStatus);
 router.patch("/:taskId/assign", assignTask);
 router.delete("/:taskId", deleteTask);
+
+// Task Attachments (Phase 9)
+router.post("/:taskId/attachments", uploadAttachmentMiddleware, uploadTaskAttachment);
+router.delete("/:taskId/attachments/:attachmentId", deleteTaskAttachment);
 
 // Task Comments (Phase 8)
 router.use("/:taskId/comments", commentRoutes);

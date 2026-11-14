@@ -3,6 +3,10 @@ const Task = require("../models/Task");
 const Project = require("../models/Project");
 const Team = require("../models/Team");
 const Membership = require("../models/Membership");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../config/cloudinary");
 
 /**
  * Escapes special regex characters for safe search queries
@@ -753,6 +757,142 @@ const deleteTask = async (req, res) => {
   }
 };
 
+/**
+ * 9. POST /api/organizations/:orgId/tasks/:taskId/attachments
+ * Uploads a file attachment to the task via Cloudinary
+ */
+const uploadTaskAttachment = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    if (!mongoose.isValidObjectId(taskId)) {
+      return res.status(400).json({ success: false, message: "Invalid task ID" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select a file to upload",
+      });
+    }
+
+    const task = await Task.findOne({
+      _id: taskId,
+      organization: req.organization._id,
+    });
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found in this organization" });
+    }
+
+    // Permission check: Owner, Admin, task:update, Assignee, OR Reporter
+    const isOwnerOrAdmin =
+      req.orgRole.name === "owner" ||
+      req.orgRole.name === "admin" ||
+      req.orgRole.permissions?.includes("task:update");
+    const isAssignee = task.assignee && task.assignee.toString() === req.user.id.toString();
+    const isReporter = task.reporter.toString() === req.user.id.toString();
+
+    if (!isOwnerOrAdmin && !isAssignee && !isReporter) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to attach files to this task",
+      });
+    }
+
+    const isImage = req.file.mimetype.startsWith("image/");
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: `teamflow/tasks/${task.taskKey}`,
+      resource_type: isImage ? "image" : "raw",
+    });
+
+    const newAttachment = {
+      originalName: req.file.originalname,
+      url: result.secure_url,
+      publicId: result.public_id,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
+      uploadedBy: req.user.id,
+      uploadedAt: new Date(),
+    };
+
+    task.attachments.push(newAttachment);
+    await task.save();
+
+    const updatedTask = await Task.findById(task._id).populate(
+      "attachments.uploadedBy",
+      "name email avatar",
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Attachment uploaded successfully",
+      data: updatedTask.attachments,
+    });
+  } catch (error) {
+    console.error("uploadTaskAttachment Error:", error);
+    return res.status(500).json({ success: false, message: "Failed to upload attachment" });
+  }
+};
+
+/**
+ * 10. DELETE /api/organizations/:orgId/tasks/:taskId/attachments/:attachmentId
+ * Deletes an attachment from task and Cloudinary
+ */
+const deleteTaskAttachment = async (req, res) => {
+  try {
+    const { taskId, attachmentId } = req.params;
+
+    if (!mongoose.isValidObjectId(taskId) || !mongoose.isValidObjectId(attachmentId)) {
+      return res.status(400).json({ success: false, message: "Invalid ID parameters" });
+    }
+
+    const task = await Task.findOne({
+      _id: taskId,
+      organization: req.organization._id,
+    });
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found in this organization" });
+    }
+
+    const attachment = task.attachments.id(attachmentId);
+    if (!attachment) {
+      return res.status(404).json({ success: false, message: "Attachment not found" });
+    }
+
+    // Permission check: Owner, Admin, or user who uploaded the attachment
+    const isOwnerOrAdmin =
+      req.orgRole.name === "owner" ||
+      req.orgRole.name === "admin" ||
+      req.orgRole.permissions?.includes("task:delete");
+    const isUploader = attachment.uploadedBy.toString() === req.user.id.toString();
+
+    if (!isOwnerOrAdmin && !isUploader) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to delete this attachment",
+      });
+    }
+
+    // Delete from Cloudinary
+    const isImage = attachment.fileType.startsWith("image/");
+    await deleteFromCloudinary(attachment.publicId, isImage ? "image" : "raw");
+
+    // Remove from task document
+    task.attachments.pull({ _id: attachmentId });
+    await task.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Attachment deleted successfully",
+    });
+  } catch (error) {
+    console.error("deleteTaskAttachment Error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete attachment" });
+  }
+};
+
 module.exports = {
   createTask,
   getOrganizationTasks,
@@ -762,5 +902,7 @@ module.exports = {
   updateTaskStatus,
   assignTask,
   deleteTask,
+  uploadTaskAttachment,
+  deleteTaskAttachment,
 };
 

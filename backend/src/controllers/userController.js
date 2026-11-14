@@ -186,6 +186,11 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../config/cloudinary");
+
 const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -266,6 +271,85 @@ const deleteOwnAccount = async (req, res) => {
   }
 };
 
+/**
+ * Uploads or updates current user profile avatar via Cloudinary
+ */
+const uploadUserAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select an image file to upload",
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Delete previous avatar from Cloudinary if it exists
+    if (user.avatarPublicId) {
+      await deleteFromCloudinary(user.avatarPublicId, "image");
+    }
+
+    // Upload new avatar image to Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer, {
+      folder: "teamflow/avatars",
+      transformation: [
+        { width: 256, height: 256, crop: "fill", gravity: "face" },
+      ],
+    });
+
+    user.avatar = result.secure_url;
+    user.avatarPublicId = result.public_id;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile avatar uploaded successfully",
+      avatar: user.avatar,
+    });
+  } catch (error) {
+    console.error("uploadUserAvatar Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to upload avatar",
+    });
+  }
+};
+
+/**
+ * Deletes current user profile avatar from Cloudinary
+ */
+const deleteUserAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.avatarPublicId) {
+      await deleteFromCloudinary(user.avatarPublicId, "image");
+    }
+
+    user.avatar = null;
+    user.avatarPublicId = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile avatar removed successfully",
+    });
+  } catch (error) {
+    console.error("deleteUserAvatar Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove avatar",
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -273,4 +357,6 @@ module.exports = {
   deleteUser,
   updateUserProfile,
   deleteOwnAccount,
+  uploadUserAvatar,
+  deleteUserAvatar,
 };
