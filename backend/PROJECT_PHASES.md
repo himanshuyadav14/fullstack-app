@@ -374,18 +374,24 @@
 
 ### Phase 12: Dashboard & Analytics APIs
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- High-level overview metrics for managers and admins.
-- Scoped to the requesting user's organization and permissions.
+- High-performance, single-pass MongoDB `$facet` aggregation pipelines.
+- Executive workspace overview metrics (KPIs, status & priority distributions, overdue tracking, unassigned task monitoring).
+- Project-wise progress tracking (completion percentages, active tasks, overdue counts).
+- Team & member workload capacity analysis (active, overdue, and urgent load distribution).
+- Personal contributor dashboard (`my-summary`) for individual contributors.
 
-#### 2. Metrics Provided
+#### 2. Endpoints Summary
 
-- Overall counts (users, teams, projects, tasks).
-- Task status breakdown (`todo`, `in_progress`, `completed`, `overdue`).
-- Team workload and user performance stats.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `GET` | `/api/organizations/:orgId/analytics/dashboard` | Active Member | ✅ Done | Executive workspace overview KPIs, status/priority breakdown & recent activity |
+| `GET` | `/api/organizations/:orgId/analytics/projects` | Active Member | ✅ Done | Project health, completion percentages & task metrics |
+| `GET` | `/api/organizations/:orgId/analytics/workload` | Active Member | ✅ Done | Member workload distribution, active vs completed capacity |
+| `GET` | `/api/organizations/:orgId/analytics/my-summary` | Active Member | ✅ Done | Personal contributor dashboard (my active tasks, overdue, due soon) |
 
 ---
 
@@ -423,3 +429,4 @@
 | **Nov 13, 2026** | **Phase 9** | Cloudinary file uploads: memory storage streaming, profile avatar upload/remove, task attachments upload/delete with MIME validation. | Postman verified |
 | **Nov 14, 2026** | **Phase 10**| In-App Notifications: schema & compound index, notificationService with anti-self-notification guard, task & comment triggers, CRUD endpoints, and Postman folder 11. | Code verified    |
 | **Nov 15, 2026** | **Phase 11**| Real-Time WebSockets: Socket.IO setup on HTTP server, JWT handshake auth (`socketAuth.js`), scoped room partitioning (`user`, `org`, `project`, `task`), live triggers for notifications, Kanban updates, and discussions. | Live Test verified |
+| **Nov 15, 2026** | **Phase 12**| Dashboard & Analytics APIs: MongoDB single-pass `$facet` aggregation pipelines, executive dashboard KPIs, project completion metrics, member workload capacity, personal summary, and Postman folder 12. | Live Test verified |

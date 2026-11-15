@@ -22,6 +22,7 @@ const {
 const teamRoutes = require("./teamRoutes");
 const projectRoutes = require("./projectRoutes");
 const taskRoutes = require("./taskRoutes");
+const analyticsRoutes = require("./analyticsRoutes");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const {
@@ -59,5 +60,8 @@ router.use("/:orgId/projects", projectRoutes);
 
 // Tasks Management (Phase 7)
 router.use("/:orgId/tasks", taskRoutes);
+
+// Analytics & Metrics (Phase 12)
+router.use("/:orgId/analytics", analyticsRoutes);
 
 module.exports = router;
