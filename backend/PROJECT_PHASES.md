@@ -339,14 +339,36 @@
 
 ### Phase 11: Real-time Communication (Socket.IO)
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- Real-time updates delivered instantly to connected clients.
-- JWT-authenticated socket handshakes.
-- Rooms partitioned by user ID (`user:<id>`), organization (`org:<id>`), and project (`project:<id>`).
-- Events: `task:created`, `task:updated`, `task:assigned`, `comment:added`, `notification:received`.
+- Instant real-time WebSocket communication integrated into Express HTTP server via Socket.IO.
+- Handshake JWT authentication (`socketAuth.js`) preventing unauthorized WebSocket connections.
+- Multi-tenant room partitioning with access control guards (`user:<id>`, `org:<id>`, `project:<id>`, `task:<id>`).
+- Live event delivery for In-App notifications, Kanban boards, and task discussions.
+
+#### 2. Architecture & Modules
+
+- `src/socket/socketAuth.js`: Validates JWT token from `auth.token`, `headers.authorization`, or `query.token`. Verifies user active status.
+- `src/socket/index.js`: Socket server initializer, connection lifecycle management, room joins with authorization checks, and reusable emitter helpers:
+  - `emitToUser(userId, event, payload)`
+  - `emitToOrg(orgId, event, payload)`
+  - `emitToProject(projectId, event, payload)`
+  - `emitToTask(taskId, event, payload)`
+
+#### 3. Real-Time Events Summary
+
+| Event Name | Room Scope | Triggered In | Description |
+| :--- | :--- | :--- | :--- |
+| `notification:new` | `user:<id>` | `notificationService.js` | Direct alert pushed to user's screen live |
+| `task:created` | `project:<id>` | `taskController.js` | New task added to project Kanban board |
+| `task:status_changed` | `project:<id>` | `taskController.js` | Instant card movement across Kanban columns |
+| `task:assigned` | `project:<id>` | `taskController.js` | Live assignee change on Kanban cards |
+| `task:deleted` | `project:<id>` | `taskController.js` | Live removal of deleted card |
+| `comment:new` | `task:<id>` | `commentController.js` | Instant message in task discussion modal |
+| `task:attachment_uploaded` | `task:<id>` | `taskController.js` | Live file attachment sync in task view |
+| `task:typing` / `task:user_typing` | `task:<id>` | Socket client | Collaborative typing indicators |
 
 ---
 
@@ -400,3 +422,4 @@
 | **Nov 12, 2026** | **Phase 8** | Comments & Discussions: chronological discussion thread per task, author edit restriction, author/admin deletion. | Postman verified |
 | **Nov 13, 2026** | **Phase 9** | Cloudinary file uploads: memory storage streaming, profile avatar upload/remove, task attachments upload/delete with MIME validation. | Postman verified |
 | **Nov 14, 2026** | **Phase 10**| In-App Notifications: schema & compound index, notificationService with anti-self-notification guard, task & comment triggers, CRUD endpoints, and Postman folder 11. | Code verified    |
+| **Nov 15, 2026** | **Phase 11**| Real-Time WebSockets: Socket.IO setup on HTTP server, JWT handshake auth (`socketAuth.js`), scoped room partitioning (`user`, `org`, `project`, `task`), live triggers for notifications, Kanban updates, and discussions. | Live Test verified |

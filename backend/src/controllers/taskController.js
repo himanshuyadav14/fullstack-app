@@ -8,6 +8,7 @@ const {
   deleteFromCloudinary,
 } = require("../config/cloudinary");
 const { createNotification } = require("../services/notificationService");
+const { emitToProject, emitToTask } = require("../socket");
 
 /**
  * Escapes special regex characters for safe search queries
@@ -234,6 +235,9 @@ const createTask = async (req, res) => {
         resourceId: task._id,
       });
     }
+
+    // Broadcast real-time task creation to project Kanban board
+    emitToProject(project._id, "task:created", populatedTask);
 
     return res.status(201).json({
       success: true,
@@ -647,15 +651,20 @@ const updateTaskStatus = async (req, res) => {
       });
     }
 
+    const statusPayload = {
+      taskId: task._id,
+      taskKey: task.taskKey,
+      status: task.status,
+      order: task.order,
+    };
+
+    // Broadcast real-time status change to project Kanban subscribers
+    emitToProject(task.project, "task:status_changed", statusPayload);
+
     return res.status(200).json({
       success: true,
       message: `Task status updated to "${status}"`,
-      data: {
-        taskId: task._id,
-        taskKey: task.taskKey,
-        status: task.status,
-        order: task.order,
-      },
+      data: statusPayload,
     });
   } catch (error) {
     console.error("updateTaskStatus Error:", error);
@@ -760,6 +769,9 @@ const assignTask = async (req, res) => {
       .populate("assignee", "name email avatar")
       .select("taskKey title status priority assignee");
 
+    // Broadcast real-time assignment update to project subscribers
+    emitToProject(task.project, "task:assigned", updatedTask);
+
     return res.status(200).json({
       success: true,
       message: verifiedAssignee
@@ -811,6 +823,12 @@ const deleteTask = async (req, res) => {
     await Task.deleteOne({
       _id: task._id,
       organization: req.organization._id,
+    });
+
+    // Broadcast real-time deletion to project subscribers
+    emitToProject(task.project, "task:deleted", {
+      taskId: task._id,
+      taskKey: task.taskKey,
     });
 
     return res.status(200).json({
@@ -911,6 +929,9 @@ const uploadTaskAttachment = async (req, res) => {
       "attachments.uploadedBy",
       "name email avatar",
     );
+
+    // Broadcast real-time attachment to subscribers of this task
+    emitToTask(task._id, "task:attachment_uploaded", newAttachment);
 
     return res.status(201).json({
       success: true,

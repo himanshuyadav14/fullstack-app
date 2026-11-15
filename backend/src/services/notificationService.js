@@ -1,7 +1,9 @@
 const Notification = require("../models/Notification");
+const { emitToUser } = require("../socket");
 
 /**
  * Creates an in-app notification with anti-self-notification safeguard
+ * and dispatches instant WebSocket event to recipient's private room
  * @param {Object} params
  * @param {string|ObjectId} params.recipient - Target user receiving the alert
  * @param {string|ObjectId} params.sender - User who performed the action
@@ -43,6 +45,15 @@ const createNotification = async ({
       resourceType,
       resourceId,
     });
+
+    // Populate sender and organization info for immediate UI rendering
+    const populatedNotification = await Notification.findById(notification._id)
+      .populate("sender", "name email avatar")
+      .populate("organization", "name")
+      .lean();
+
+    // Instant WebSocket dispatch to recipient's private room
+    emitToUser(recipient, "notification:new", populatedNotification);
 
     return notification;
   } catch (error) {

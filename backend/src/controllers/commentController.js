@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Comment = require("../models/Comment");
 const Task = require("../models/Task");
 const { createNotification } = require("../services/notificationService");
+const { emitToTask } = require("../socket");
 
 /**
  * 1. POST /api/organizations/:orgId/tasks/:taskId/comments
@@ -82,6 +83,9 @@ const createComment = async (req, res) => {
         resourceId: task._id,
       });
     }
+
+    // Broadcast new comment to active viewers of this task discussion
+    emitToTask(task._id, "comment:new", populatedComment);
 
     return res.status(201).json({
       success: true,
