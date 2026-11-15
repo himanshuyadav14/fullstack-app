@@ -3,6 +3,7 @@ const Membership = require("../models/Membership");
 const Role = require("../models/Role");
 const Organization = require("../models/Organization");
 const User = require("../models/User");
+const { createNotification } = require("../services/notificationService");
 
 /**
  * 1. GET /api/organizations/:orgId/members
@@ -154,6 +155,18 @@ const updateMemberRole = async (req, res) => {
     // 3. Apply role update
     targetMembership.role = targetRole._id;
     await targetMembership.save();
+
+    // Dispatch notification to member about role change
+    await createNotification({
+      recipient: targetMembership.user,
+      sender: req.user.id,
+      organization: req.organization._id,
+      type: "role_updated",
+      title: "Organization Role Updated",
+      message: `Your role in "${req.organization.name}" was updated to "${targetRole.name}"`,
+      resourceType: "organization",
+      resourceId: req.organization._id,
+    });
 
     const updatedMembership = await Membership.findById(targetMembership._id)
       .populate("user", "name email avatar")
@@ -349,6 +362,18 @@ const transferOwnership = async (req, res) => {
     );
 
     await session.commitTransaction();
+
+    // Dispatch notification to the new owner
+    await createNotification({
+      recipient: targetUserId,
+      sender: req.user.id,
+      organization: req.organization._id,
+      type: "ownership_transferred",
+      title: "Organization Ownership Transferred",
+      message: `${req.user.name || "The owner"} has transferred ownership of "${req.organization.name}" to you. You are now the Organization Owner.`,
+      resourceType: "organization",
+      resourceId: req.organization._id,
+    });
 
     const newOwnerUser = await User.findById(targetUserId).select("name email");
 

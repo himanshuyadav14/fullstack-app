@@ -7,6 +7,7 @@ const {
   uploadToCloudinary,
   deleteFromCloudinary,
 } = require("../config/cloudinary");
+const { createNotification } = require("../services/notificationService");
 
 /**
  * Escapes special regex characters for safe search queries
@@ -219,6 +220,20 @@ const createTask = async (req, res) => {
       .populate("team", "name")
       .populate("assignee", "name email avatar")
       .populate("reporter", "name email avatar");
+
+    // Dispatch notification to assignee if assigned to someone else
+    if (verifiedAssigneeId) {
+      await createNotification({
+        recipient: verifiedAssigneeId,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "task_assigned",
+        title: "New Task Assigned",
+        message: `${req.user.name || "A team member"} assigned you task ${taskKey}: "${trimmedTitle}"`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -610,6 +625,28 @@ const updateTaskStatus = async (req, res) => {
 
     await task.save();
 
+    // Dispatch notification to task reporter and assignee
+    const recipientsToNotify = new Set();
+    if (task.reporter) {
+      recipientsToNotify.add(task.reporter.toString());
+    }
+    if (task.assignee) {
+      recipientsToNotify.add(task.assignee.toString());
+    }
+
+    for (const recipientId of recipientsToNotify) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "task_status_changed",
+        title: `Task Status Changed: ${task.taskKey}`,
+        message: `${req.user.name || "A team member"} updated ${task.taskKey} status to "${status}"`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: `Task status updated to "${status}"`,
@@ -684,8 +721,37 @@ const assignTask = async (req, res) => {
       verifiedAssignee = assigneeId;
     }
 
+    const previousAssignee = task.assignee ? task.assignee.toString() : null;
     task.assignee = verifiedAssignee;
     await task.save();
+
+    // Dispatch notification to previous assignee if unassigned or reassigned
+    if (previousAssignee && previousAssignee !== (verifiedAssignee ? verifiedAssignee.toString() : null)) {
+      await createNotification({
+        recipient: previousAssignee,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "task_unassigned",
+        title: "Task Unassigned",
+        message: `${req.user.name || "A team member"} unassigned you from task ${task.taskKey}: "${task.title}"`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
+
+    // Dispatch notification to newly assigned user
+    if (verifiedAssignee) {
+      await createNotification({
+        recipient: verifiedAssignee,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "task_assigned",
+        title: "Task Assigned to You",
+        message: `${req.user.name || "A team member"} assigned you task ${task.taskKey}: "${task.title}"`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
 
     const updatedTask = await Task.findOne({
       _id: task._id,
@@ -818,6 +884,28 @@ const uploadTaskAttachment = async (req, res) => {
 
     task.attachments.push(newAttachment);
     await task.save();
+
+    // Dispatch notification to task reporter and assignee
+    const recipientsToNotify = new Set();
+    if (task.reporter) {
+      recipientsToNotify.add(task.reporter.toString());
+    }
+    if (task.assignee) {
+      recipientsToNotify.add(task.assignee.toString());
+    }
+
+    for (const recipientId of recipientsToNotify) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "attachment_uploaded",
+        title: `New Attachment on ${task.taskKey}`,
+        message: `${req.user.name || "A team member"} uploaded "${req.file.originalname}" on task ${task.taskKey}`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
 
     const updatedTask = await Task.findById(task._id).populate(
       "attachments.uploadedBy",

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Team = require("../models/Team");
 const Membership = require("../models/Membership");
+const { createNotification } = require("../services/notificationService");
 
 /**
  * Escapes special regex characters to prevent ReDoS and unexpected query matching
@@ -585,6 +586,20 @@ const addTeamMembers = async (req, res) => {
       { _id: team._id, organization: req.organization._id },
       { $addToSet: { members: { $each: verifiedUserIds } } },
     );
+
+    // Dispatch notifications to added members
+    for (const memberId of verifiedUserIds) {
+      await createNotification({
+        recipient: memberId,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "team_member_added",
+        title: "Added to Team",
+        message: `${req.user.name || "A manager"} added you to team "${team.name}"`,
+        resourceType: "team",
+        resourceId: team._id,
+      });
+    }
 
     const updatedTeam = await Team.findOne({
       _id: team._id,

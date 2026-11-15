@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Comment = require("../models/Comment");
 const Task = require("../models/Task");
+const { createNotification } = require("../services/notificationService");
 
 /**
  * 1. POST /api/organizations/:orgId/tasks/:taskId/comments
@@ -59,6 +60,28 @@ const createComment = async (req, res) => {
       "author",
       "name email avatar",
     );
+
+    // Dispatch in-app notifications to assignee and reporter (excluding comment author)
+    const recipients = new Set();
+    if (task.assignee) {
+      recipients.add(task.assignee.toString());
+    }
+    if (task.reporter) {
+      recipients.add(task.reporter.toString());
+    }
+
+    for (const recipientId of recipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user.id,
+        organization: req.organization._id,
+        type: "comment_added",
+        title: `New Comment on ${task.taskKey}`,
+        message: `${req.user.name || "A team member"} commented on "${task.title}": "${trimmedContent.slice(0, 80)}${trimmedContent.length > 80 ? "..." : ""}"`,
+        resourceType: "task",
+        resourceId: task._id,
+      });
+    }
 
     return res.status(201).json({
       success: true,

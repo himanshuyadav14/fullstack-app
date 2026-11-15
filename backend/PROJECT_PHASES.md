@@ -308,24 +308,32 @@
 
 ---
 
-### Phase 10: Notifications System
+### Phase 10: In-App Notifications System
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- Trigger notifications on task assignment, task status updates, and mentions/comments.
-- Persistent notifications in MongoDB with read/unread tracking and pagination.
+- Persistent in-app notifications model with recipient, sender, organization isolation, and read/unread tracking.
+- Anti-self-notification safeguard (never sends notification if recipient == sender).
+- Compound indexes for high-speed badge counters (`unreadCount`) and chronological list fetching.
+- Automatic event triggers integrated into Task Management (task assignment, status transitions) and Discussions (comments).
+- Full user notification lifecycle (fetch paginated, filter unread, get badge count, mark single/all as read, dismiss/delete).
 
-#### 2. Key Models
+#### 2. Key Models & Services
 
-- `Notification.js`: `recipientId`, `senderId`, `type`, `title`, `message`, `resourceId`, `resourceType`, `isRead`, `timestamps`.
+- `Notification.js`: `recipient`, `sender`, `organization`, `type` (`task_assigned`, `task_status_changed`, `comment_added`, `mention`), `title`, `message`, `resourceType` (`task`, `project`, `comment`), `resourceId`, `isRead`, `readAt`, `timestamps`.
+- `src/services/notificationService.js`: `createNotification` with input validation, payload truncation, and silent error trapping.
 
-#### 3. Planned Endpoints
+#### 3. Endpoints Summary
 
-- `GET /api/notifications` — Fetch user notifications (paginated, unread filter).
-- `PATCH /api/notifications/:notificationId/read` — Mark single notification as read.
-- `PATCH /api/notifications/mark-all-read` — Mark all as read.
+| Method | Endpoint | Permission | Status | Description |
+| :--- | :--- | :--- | :---: | :--- |
+| `GET` | `/api/notifications` | Authenticated | ✅ Done | Get user notifications (paginated, `unreadOnly=true`, optional `organization` filter) |
+| `GET` | `/api/notifications/unread-count` | Authenticated | ✅ Done | Get unread count for bell icon badge |
+| `PATCH` | `/api/notifications/:notificationId/read` | Authenticated | ✅ Done | Mark a specific notification as read |
+| `PATCH` | `/api/notifications/read-all` | Authenticated | ✅ Done | Mark all notifications as read for current user |
+| `DELETE` | `/api/notifications/:notificationId` | Authenticated | ✅ Done | Delete/dismiss a notification document |
 
 ---
 
@@ -385,3 +393,10 @@
 | **Nov 01, 2026** | **Phase 2** | `PATCH /api/users/profile` self profile update via authenticated `req.user.id` completed.        | Code verified    |
 | **Nov 01, 2026** | **Phase 3** | Dynamic RBAC completed: permissions registry expanded, hardcoded enums removed, role CRUD (`POST /api/roles`, `GET /api/roles/permissions`, `DELETE /api/roles/:roleName` with system & user-assignment protections) implemented. | Code verified    |
 | **Nov 01, 2026** | **Phase 3** | Migrated `User.role` to MongoDB `ObjectId` (`ref: "Role"`), updated `signup` (first user becomes admin, subsequent become member), `login` (JWT token includes `role` and `roleId`), `getMe`, and user controllers with `.populate()`. | Code verified    |
+| **Nov 05, 2026** | **Phase 4** | Organizations & Membership: multi-tenancy, seeded roles (`owner`, `admin`, `manager`, `member`), invitations via SMTP & hashed tokens, membership updates, voluntary leave, and atomic ownership transfer. | Postman verified |
+| **Nov 08, 2026** | **Phase 5** | Teams management: team CRUD, team lead validation, member assignment/removal, collation index for case-insensitive team names. | Postman verified |
+| **Nov 10, 2026** | **Phase 6** | Projects management: project CRUD, atomic auto-incrementing key generation, contributors management, date ranges. | Postman verified |
+| **Nov 11, 2026** | **Phase 7** | Tasks & Kanban board: atomic sequential task keys (`TF-1`), status workflows, Kanban views, assignees, reporters, priorities. | Postman verified |
+| **Nov 12, 2026** | **Phase 8** | Comments & Discussions: chronological discussion thread per task, author edit restriction, author/admin deletion. | Postman verified |
+| **Nov 13, 2026** | **Phase 9** | Cloudinary file uploads: memory storage streaming, profile avatar upload/remove, task attachments upload/delete with MIME validation. | Postman verified |
+| **Nov 14, 2026** | **Phase 10**| In-App Notifications: schema & compound index, notificationService with anti-self-notification guard, task & comment triggers, CRUD endpoints, and Postman folder 11. | Code verified    |
