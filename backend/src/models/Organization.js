@@ -26,6 +26,20 @@ const OrganizationSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    logoPublicId: {
+      type: String,
+      default: null,
+    },
+    teamSize: {
+      type: String,
+      enum: ["1", "2-10", "11-50", "51-200", "201+"],
+      default: "1",
+    },
+    industry: {
+      type: String,
+      trim: true,
+      default: "Software & Tech",
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

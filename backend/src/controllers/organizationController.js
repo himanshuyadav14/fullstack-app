@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const cloudinary = require("cloudinary").v2;
 
 const Organization = require("../models/Organization");
 const Membership = require("../models/Membership");
@@ -14,7 +15,7 @@ const createMyOrganization = async (req, res) => {
   let session;
 
   try {
-    const { name, description } = req.body;
+    const { name, description, teamSize, industry, logo } = req.body;
 
     // 1. Validate organization name
     if (typeof name !== "string" || !name.trim()) {
@@ -54,6 +55,44 @@ const createMyOrganization = async (req, res) => {
       });
     }
 
+    // 2b. Validate team size & industry
+    const validTeamSizes = ["1", "2-10", "11-50", "51-200", "201+"];
+    const finalTeamSize = validTeamSizes.includes(teamSize) ? teamSize : "1";
+    const trimmedIndustry =
+      typeof industry === "string" && industry.trim()
+        ? industry.trim().slice(0, 100)
+        : "Software & Tech";
+
+    // 2c. Process optional logo (upload to Cloudinary if base64 or URL)
+    let finalLogo = null;
+    let finalLogoPublicId = null;
+
+    if (logo && typeof logo === "string" && logo.trim()) {
+      const trimmedLogo = logo.trim();
+      if (
+        trimmedLogo.startsWith("data:image/") ||
+        trimmedLogo.startsWith("http://") ||
+        trimmedLogo.startsWith("https://")
+      ) {
+        try {
+          const uploadRes = await cloudinary.uploader.upload(trimmedLogo, {
+            folder: "orbithq/logos",
+            transformation: [{ width: 256, height: 256, crop: "fill" }],
+          });
+          finalLogo = uploadRes.secure_url;
+          finalLogoPublicId = uploadRes.public_id;
+        } catch (uploadErr) {
+          console.warn(
+            "Cloudinary upload failed for logo, using provided string:",
+            uploadErr.message,
+          );
+          finalLogo = trimmedLogo.length < 2000 ? trimmedLogo : null;
+        }
+      } else {
+        finalLogo = trimmedLogo.slice(0, 500);
+      }
+    }
+
     // 3. Generate base slug
     const baseSlug = slugify(trimmedName);
 
@@ -86,6 +125,10 @@ const createMyOrganization = async (req, res) => {
           name: trimmedName,
           slug,
           description: trimmedDescription,
+          logo: finalLogo,
+          logoPublicId: finalLogoPublicId,
+          teamSize: finalTeamSize,
+          industry: trimmedIndustry,
           createdBy: req.user.id,
           status: "active",
         },
@@ -243,6 +286,9 @@ const createMyOrganization = async (req, res) => {
           name: organization.name,
           slug: organization.slug,
           description: organization.description,
+          logo: organization.logo,
+          teamSize: organization.teamSize,
+          industry: organization.industry,
           status: organization.status,
           createdAt: organization.createdAt,
         },
@@ -292,7 +338,10 @@ const getMyOrganizations = async (req, res) => {
       user: req.user.id,
       status: "active",
     })
-      .populate("organization", "name slug description logo status createdAt")
+      .populate(
+        "organization",
+        "name slug description logo teamSize industry status createdAt",
+      )
       .populate("role", "name description isSystemRole")
       .sort({ createdAt: -1 });
 
@@ -343,7 +392,10 @@ const getOrganizationById = async (req, res) => {
       organization: orgId,
       status: "active",
     })
-      .populate("organization", "name slug description logo status createdAt")
+      .populate(
+        "organization",
+        "name slug description logo teamSize industry status createdAt",
+      )
       .populate("role", "name description isSystemRole");
 
     // Check membership

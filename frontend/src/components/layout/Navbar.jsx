@@ -38,6 +38,18 @@ const Navbar = ({ onOpenCreateOrg }) => {
         {/* Workspace Switcher */}
         {userOrgs.length > 0 && (
           <div className="flex items-center gap-2">
+            {currentOrg?.logo ? (
+              <img
+                src={currentOrg.logo}
+                alt={currentOrg.name}
+                className="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-zinc-700 shadow-2xs"
+              />
+            ) : (
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-[11px] flex items-center justify-center uppercase shadow-2xs">
+                {currentOrg?.name?.charAt(0) || "O"}
+              </div>
+            )}
+
             <select
               value={currentOrg?._id || ""}
               onChange={(e) => {
@@ -48,7 +60,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
             >
               {userOrgs.map((org) => (
                 <option key={org._id} value={org._id}>
-                  🏢 {org.name}
+                  {org.name}
                 </option>
               ))}
             </select>

@@ -28,7 +28,19 @@ export const useOrgStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await api.get(ENDPOINTS.ORGANIZATIONS.MY);
-      const orgs = res.data.data || res.data.organizations || [];
+      const rawData = res.data.data || res.data.organizations || [];
+
+      // Flatten membership objects so organization properties sit at top-level
+      const orgs = rawData.map((item) => {
+        if (item.organization && item.organization._id) {
+          return {
+            ...item.organization,
+            role: item.role,
+            membershipId: item.membershipId || item._id,
+          };
+        }
+        return item;
+      });
 
       set({ userOrgs: orgs, loading: false, initialLoaded: true });
 
@@ -64,22 +76,22 @@ export const useOrgStore = create((set, get) => ({
   /**
    * Create a new organization
    */
-  createOrg: async ({ name, description }) => {
+  createOrg: async (payload) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.post(ENDPOINTS.ORGANIZATIONS.CREATE, {
-        name,
-        description,
-      });
+      const orgData = typeof payload === "string" ? { name: payload } : payload;
+      const res = await api.post(ENDPOINTS.ORGANIZATIONS.CREATE, orgData);
 
-      const newOrg = res.data.data || res.data.organization;
+      const created =
+        res.data.data?.organization || res.data.data || res.data.organization;
       await get().fetchMyOrgs();
-      if (newOrg) {
-        get().setCurrentOrg(newOrg);
+      if (created) {
+        const match = get().userOrgs.find((o) => o._id === created._id);
+        get().setCurrentOrg(match || created);
       }
 
       set({ loading: false });
-      return { success: true, data: newOrg };
+      return { success: true, data: created };
     } catch (err) {
       const message =
         err.response?.data?.message || "Failed to create organization.";

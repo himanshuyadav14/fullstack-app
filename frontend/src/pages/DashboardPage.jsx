@@ -53,14 +53,40 @@ const DashboardPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold tracking-tight">Executive Dashboard</h2>
-        <p className="text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
-          High-level overview of project health, workload, and task completion for{" "}
-          <strong className="text-blue-600 dark:text-blue-400">
-            {currentOrg?.name}
-          </strong>
-        </p>
+      <div className="flex items-center gap-3.5">
+        {currentOrg?.logo ? (
+          <img
+            src={currentOrg.logo}
+            alt={currentOrg.name}
+            className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-zinc-800 shadow-xs"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-lg flex items-center justify-center uppercase shadow-xs">
+            {currentOrg?.name?.charAt(0) || "O"}
+          </div>
+        )}
+
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl font-bold tracking-tight">Executive Dashboard</h2>
+            {currentOrg?.industry && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-medium">
+                {currentOrg.industry}
+              </span>
+            )}
+            {currentOrg?.teamSize && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-medium">
+                👥 {currentOrg.teamSize} {currentOrg.teamSize === "1" ? "member" : "members"}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
+            High-level overview of project health, workload, and task completion for{" "}
+            <strong className="text-blue-600 dark:text-blue-400">
+              {currentOrg?.name}
+            </strong>
+          </p>
+        </div>
       </div>
 
       {/* Personal Snapshot */}
