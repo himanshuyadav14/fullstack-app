@@ -5,6 +5,7 @@ import { ENDPOINTS } from "../services/urls";
 import validate from "../utils/validate";
 import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
+import { EyeOpenIcon, EyeClosedIcon } from "../components/common/EyeIcons";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -133,19 +134,19 @@ const ResetPassword = () => {
                   setErrors((prev) => ({ ...prev, newPassword: "" }));
                 }}
                 placeholder="Min 8 characters"
-                className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                   errors.newPassword
                     ? "border-red-500 dark:border-red-500"
-                    : "border-slate-300 dark:border-zinc-700"
+                    : "border-zinc-300 dark:border-zinc-700"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 text-sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer p-0.5"
                 title={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <EyeOpenIcon /> : <EyeClosedIcon />}
               </button>
             </div>
             {errors.newPassword && (
@@ -166,19 +167,19 @@ const ResetPassword = () => {
                   setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                 }}
                 placeholder="Confirm password"
-                className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                   errors.confirmPassword
                     ? "border-red-500 dark:border-red-500"
-                    : "border-slate-300 dark:border-zinc-700"
+                    : "border-zinc-300 dark:border-zinc-700"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 text-sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer p-0.5"
                 title={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
+                {showConfirmPassword ? <EyeOpenIcon /> : <EyeClosedIcon />}
               </button>
             </div>
             {errors.confirmPassword && (
@@ -189,17 +190,17 @@ const ResetPassword = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm text-sm cursor-pointer mt-2"
+            className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer mt-2"
           >
             {loading ? "Updating password..." : "Update Password"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-500 dark:text-zinc-400 mt-6">
+        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mt-6">
           Remembered your password?{" "}
           <Link
             to="/login"
-            className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
           >
             Sign in
           </Link>

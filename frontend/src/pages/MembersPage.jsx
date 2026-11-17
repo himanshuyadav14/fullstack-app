@@ -101,7 +101,7 @@ const MembersPage = () => {
             <button
               type="button"
               onClick={() => setShowInviteModal(true)}
-              className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
+              className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
             >
               + Invite Member
             </button>
@@ -152,7 +152,7 @@ const MembersPage = () => {
                   className="flex flex-wrap items-center justify-between p-4 hover:bg-slate-50/60 dark:hover:bg-zinc-800/40 transition-colors gap-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-bold flex items-center justify-center text-sm">
+                    <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-bold flex items-center justify-center text-sm shadow-2xs">
                       {m.user?.name?.slice(0, 2).toUpperCase() || "U"}
                     </div>
                     <div>

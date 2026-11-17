@@ -4,6 +4,7 @@ import validate from "../utils/validate";
 import { useAuthStore } from "../stores/authStore";
 import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
+import { EyeOpenIcon, EyeClosedIcon } from "../components/common/EyeIcons";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -202,19 +203,19 @@ const Signup = () => {
                       setErrors((prev) => ({ ...prev, password: "" }));
                     }}
                     placeholder="Password (min 8 chars)"
-                    className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                       errors.password
                         ? "border-red-500 dark:border-red-500"
-                        : "border-slate-300 dark:border-zinc-700"
+                        : "border-zinc-300 dark:border-zinc-700"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 text-sm cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer p-0.5"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <EyeOpenIcon /> : <EyeClosedIcon />}
                   </button>
                 </div>
                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
@@ -236,19 +237,19 @@ const Signup = () => {
                       setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                     }}
                     placeholder="Confirm password"
-                    className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                       errors.confirmPassword
                         ? "border-red-500 dark:border-red-500"
-                        : "border-slate-300 dark:border-zinc-700"
+                        : "border-zinc-300 dark:border-zinc-700"
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 text-sm cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer p-0.5"
                     title={showConfirmPassword ? "Hide password" : "Show password"}
                   >
-                    {showConfirmPassword ? "🙈" : "👁️"}
+                    {showConfirmPassword ? <EyeOpenIcon /> : <EyeClosedIcon />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
@@ -259,17 +260,17 @@ const Signup = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm text-sm cursor-pointer mt-2"
+                className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer mt-2"
               >
-                {loading ? "Creating account..." : "Continue →"}
+                {loading ? "Creating account..." : "Continue"}
               </button>
             </form>
 
-            <p className="text-center text-sm text-slate-500 dark:text-zinc-400 mt-6">
+            <p className="text-center text-sm text-zinc-500 dark:text-zinc-400 mt-6">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
               >
                 Sign in
               </Link>
@@ -279,14 +280,16 @@ const Signup = () => {
           /* ─── Step 2: OTP Verification Wizard ─── */
           <>
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-2xl mb-3">
-                ✉️
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 mb-3">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
               </div>
               <h2 className="text-2xl font-bold tracking-tight">Confirm Your Email</h2>
               <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
                 We sent a 6-digit verification code to
               </p>
-              <div className="font-semibold text-sm text-blue-600 dark:text-blue-400 mt-0.5">
+              <div className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 mt-0.5 font-mono">
                 {formData.email}
               </div>
             </div>
@@ -298,7 +301,7 @@ const Signup = () => {
             )}
 
             {resendMessage && (
-              <div className="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-sm text-green-700 dark:text-green-300">
+              <div className="mb-4 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-800 dark:text-zinc-200">
                 {resendMessage}
               </div>
             )}
@@ -320,26 +323,26 @@ const Signup = () => {
                     setApiError("");
                   }}
                   placeholder="123456"
-                  className="w-full px-3.5 py-3 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-center font-mono text-2xl tracking-[8px] font-bold text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-center font-mono text-2xl tracking-[8px] font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm text-sm cursor-pointer mt-2"
+                className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer mt-2"
               >
                 {loading ? "Verifying..." : "Verify & Activate Account"}
               </button>
             </form>
 
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
+            <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
               <span>Didn't receive the code?</span>
               {canResend ? (
                 <button
                   type="button"
                   onClick={handleResendOtp}
-                  className="font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  className="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline cursor-pointer"
                 >
                   Resend Code
                 </button>

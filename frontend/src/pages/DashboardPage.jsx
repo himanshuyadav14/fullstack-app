@@ -179,7 +179,7 @@ const DashboardPage = () => {
                       <div className="flex items-center gap-2">
                         <div className="w-24 h-2 rounded-full bg-slate-200 dark:bg-zinc-700 overflow-hidden">
                           <div
-                            className="h-full bg-blue-600 rounded-full transition-all"
+                            className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full transition-all"
                             style={{ width: `${p.completionRate || 0}%` }}
                           />
                         </div>

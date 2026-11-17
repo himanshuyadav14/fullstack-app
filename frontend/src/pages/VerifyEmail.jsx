@@ -148,26 +148,26 @@ const VerifyEmail = () => {
                 setError("");
               }}
               placeholder="123456"
-              className="w-full px-3.5 py-3 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-center font-mono text-2xl tracking-[8px] font-bold text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-center font-mono text-2xl tracking-[8px] font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading || otp.length !== 6}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm text-sm cursor-pointer mt-2"
+            className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer mt-2"
           >
-            {loading ? "Verifying..." : "Verify & Continue →"}
+            {loading ? "Verifying..." : "Verify & Continue"}
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400">
+        <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
           <span>Didn't receive the code?</span>
           {canResend ? (
             <button
               type="button"
               onClick={handleResend}
-              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              className="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline cursor-pointer"
             >
               Resend Code
             </button>
@@ -176,11 +176,11 @@ const VerifyEmail = () => {
           )}
         </div>
 
-        <p className="text-center text-xs text-slate-500 dark:text-zinc-400 mt-6">
+        <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 mt-6">
           Entered the wrong email?{" "}
           <Link
             to="/signup"
-            className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
           >
             Back to sign up
           </Link>

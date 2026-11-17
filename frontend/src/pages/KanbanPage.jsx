@@ -180,7 +180,7 @@ const KanbanPage = () => {
           <button
             type="button"
             onClick={() => setShowCreateTask(true)}
-            className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
+            className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
           >
             + Create Task
           </button>
@@ -189,22 +189,21 @@ const KanbanPage = () => {
 
       {/* Kanban Board Columns */}
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">
+        <div className="py-20 text-center text-sm text-zinc-500">
           Syncing Kanban tasks...
         </div>
       ) : projects.length === 0 ? (
-        <div className="max-w-md mx-auto my-16 p-8 text-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl">
-          <div className="text-4xl mb-3">📁</div>
+        <div className="max-w-md mx-auto my-16 p-8 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl">
           <h3 className="text-lg font-bold mb-2">No Projects Found</h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mb-6 leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
             Create your first project to start tracking tasks and sprints on the Kanban board.
           </p>
           <button
             type="button"
             onClick={() => setShowCreateProject(true)}
-            className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-xs cursor-pointer"
+            className="py-2.5 px-6 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm shadow-2xs cursor-pointer"
           >
-            + Create Project
+            Create Project
           </button>
         </div>
       ) : (

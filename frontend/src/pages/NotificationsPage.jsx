@@ -30,7 +30,7 @@ const NotificationsPage = () => {
           <button
             type="button"
             onClick={markAllAsRead}
-            className="px-3.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
           >
             Mark all as read ({unreadCount})
           </button>
@@ -39,14 +39,13 @@ const NotificationsPage = () => {
 
       {/* Notifications Feed */}
       {loading && notifications.length === 0 ? (
-        <div className="py-20 text-center text-sm text-slate-500">
+        <div className="py-20 text-center text-sm text-zinc-500">
           Loading notification feed...
         </div>
       ) : notifications.length === 0 ? (
-        <div className="p-12 text-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-          <div className="text-4xl mb-3">🔔</div>
+        <div className="p-12 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs">
           <h3 className="text-base font-bold mb-1">No Notifications Yet</h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
             You are all caught up! When you get assigned tasks or someone comments on your work, you will see real-time updates here.
           </p>
         </div>
@@ -56,16 +55,16 @@ const NotificationsPage = () => {
             <div
               key={n._id}
               onClick={() => !n.isRead && markAsRead(n._id)}
-              className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 shadow-xs ${
+              className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 shadow-2xs ${
                 n.isRead
-                  ? "bg-white dark:bg-zinc-900/60 border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300"
-                  : "bg-blue-50/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/60 text-slate-900 dark:text-zinc-100"
+                  ? "bg-white dark:bg-zinc-900/60 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300"
+                  : "bg-zinc-100 dark:bg-zinc-800/80 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               }`}
             >
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold flex items-center gap-1.5">
+                <span className="font-semibold flex items-center gap-2">
                   {!n.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-zinc-900 dark:bg-zinc-100 inline-block" />
                   )}
                   {n.title}
                 </span>

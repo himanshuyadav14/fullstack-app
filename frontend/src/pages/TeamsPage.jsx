@@ -49,7 +49,7 @@ const TeamsPage = () => {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
+            className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
           >
             + New Team
           </button>
@@ -58,23 +58,22 @@ const TeamsPage = () => {
 
       {/* Teams Grid */}
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">
+        <div className="py-20 text-center text-sm text-zinc-500">
           Loading team squads...
         </div>
       ) : teams.length === 0 ? (
-        <div className="p-12 text-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-          <div className="text-4xl mb-3">🛡️</div>
+        <div className="p-12 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs">
           <h3 className="text-base font-bold mb-1">No Teams Created Yet</h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">
             Create cross-functional teams like "Engineering", "Design", or "Growth" to organize assignments.
           </p>
           {isOwnerOrAdmin && (
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-xs cursor-pointer"
+              className="py-2.5 px-6 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm shadow-2xs cursor-pointer"
             >
-              + Create First Team
+              Create First Team
             </button>
           )}
         </div>
@@ -87,10 +86,10 @@ const TeamsPage = () => {
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-base font-bold tracking-tight text-slate-800 dark:text-zinc-100">
-                    🛡️ {t.name}
+                  <h4 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                    {t.name}
                   </h4>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
+                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
                     {t.members?.length || 0} members
                   </span>
                 </div>

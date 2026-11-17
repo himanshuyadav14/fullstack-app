@@ -152,7 +152,7 @@ const TaskDetailModal = ({
         {/* Meta Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-800">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-1 rounded-md text-xs font-semibold uppercase bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400">
+            <span className="px-2.5 py-1 rounded-md text-xs font-semibold uppercase bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
               {task.status?.replace("_", " ")}
             </span>
             <span className="px-2.5 py-1 rounded-md text-xs font-semibold capitalize bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
@@ -289,7 +289,7 @@ const TaskDetailModal = ({
             <button
               type="submit"
               disabled={submittingComment || !newComment.trim()}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg text-xs cursor-pointer shadow-xs transition-colors"
+              className="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 font-medium rounded-lg text-xs cursor-pointer shadow-2xs transition-colors"
             >
               {submittingComment ? "Posting..." : "Send"}
             </button>

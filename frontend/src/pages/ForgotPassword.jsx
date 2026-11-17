@@ -68,15 +68,15 @@ const ForgotPassword = () => {
 
         {submitted ? (
           <div className="text-center space-y-4">
-            <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-sm text-green-700 dark:text-green-300 leading-relaxed">
-              ✅ If an account with <strong>{email}</strong> exists, a password reset link has been dispatched to your inbox.
+            <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed">
+              If an account with <strong className="font-semibold text-zinc-950 dark:text-zinc-100">{email}</strong> exists, a password reset link has been dispatched to your inbox.
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               The link expires in 15 minutes. Please check your spam folder if you do not receive it.
             </p>
             <Link
               to="/login"
-              className="inline-block py-2.5 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm shadow-sm"
+              className="inline-block py-2.5 px-6 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg transition-colors text-sm shadow-xs cursor-pointer"
             >
               Back to Sign In
             </Link>
@@ -95,10 +95,10 @@ const ForgotPassword = () => {
                   setError("");
                 }}
                 placeholder="name@company.com"
-                className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                   error
                     ? "border-red-500 dark:border-red-500"
-                    : "border-slate-300 dark:border-zinc-700"
+                    : "border-zinc-300 dark:border-zinc-700"
                 }`}
               />
               {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
@@ -107,7 +107,7 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm text-sm cursor-pointer"
+              className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer"
             >
               {loading ? "Sending link..." : "Send Reset Link"}
             </button>

@@ -98,7 +98,7 @@ const CreateProjectModal = ({ orgId, onClose, onProjectCreated }) => {
         <button
           type="submit"
           disabled={loading || !name.trim() || !key.trim()}
-          className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
+          className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
         >
           {loading ? "Creating..." : "Create Project"}
         </button>
