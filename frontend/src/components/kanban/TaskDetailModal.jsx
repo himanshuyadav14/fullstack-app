@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
+import { useOrgStore } from "../../stores/orgStore";
 import api from "../../services/api";
 import { ENDPOINTS } from "../../services/urls";
 
@@ -10,10 +11,12 @@ import { ENDPOINTS } from "../../services/urls";
 const TaskDetailModal = ({
   task,
   orgId,
+  currentProject,
   onClose,
   onTaskUpdated,
   onTaskDeleted,
 }) => {
+  const { currentOrg } = useOrgStore();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
@@ -163,13 +166,36 @@ const TaskDetailModal = ({
     }
   };
 
+  const teamName =
+    task.team?.name || task.project?.team?.name || currentProject?.team?.name || "Engineering";
+  const projectName = task.project?.name || currentProject?.name || "Project";
+
   return (
     <Modal
       title={`${task.taskKey}: ${task.title}`}
       onClose={onClose}
       maxWidth="max-w-2xl"
     >
-      <div className="space-y-5 text-sm">
+      <div className="space-y-4 text-sm">
+        {/* Contextual Hierarchy Path (Workspace › Team › Project › Task) */}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 pb-2.5 border-b border-zinc-100 dark:border-zinc-800">
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">
+            {currentOrg?.name}
+          </span>
+          <span>›</span>
+          <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+            {teamName}
+          </span>
+          <span>›</span>
+          <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+            {projectName}
+          </span>
+          <span>›</span>
+          <span className="font-mono font-bold text-zinc-950 dark:text-zinc-50 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+            {task.taskKey}
+          </span>
+        </div>
+
         {/* Meta Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-800">
           <div className="flex flex-wrap items-center gap-2">
@@ -178,6 +204,9 @@ const TaskDetailModal = ({
             </span>
             <span className="px-2.5 py-1 rounded-md text-xs font-semibold capitalize bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
               {task.priority} Priority
+            </span>
+            <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">
+              {teamName}
             </span>
           </div>
 

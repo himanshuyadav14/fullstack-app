@@ -154,7 +154,8 @@ const getProjectAnalytics = async (req, res) => {
 
     const [allProjects, aggregatedStats] = await Promise.all([
       Project.find({ organization: orgId })
-        .select("_id name key status category")
+        .populate("team", "name")
+        .select("_id name key status category team")
         .lean(),
       Task.aggregate([
         { $match: { organization: orgId } },

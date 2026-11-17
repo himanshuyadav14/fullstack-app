@@ -159,6 +159,7 @@ const DashboardPage = () => {
               <thead>
                 <tr className="border-b border-slate-200 dark:border-zinc-800 text-xs font-semibold uppercase text-slate-500 dark:text-zinc-400">
                   <th className="pb-3">Project</th>
+                  <th className="pb-3">Team</th>
                   <th className="pb-3">Key</th>
                   <th className="pb-3">Tasks</th>
                   <th className="pb-3">Done</th>
@@ -170,6 +171,11 @@ const DashboardPage = () => {
                   <tr key={p._id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
                     <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200">
                       {p.name}
+                    </td>
+                    <td className="py-3 text-xs">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium border border-zinc-200/60 dark:border-zinc-700/60">
+                        {p.team?.name || "Engineering"}
+                      </span>
                     </td>
                     <td className="py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 font-medium">
                       {p.key}

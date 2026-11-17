@@ -38,9 +38,16 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
       className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs hover:border-zinc-900 dark:hover:border-zinc-100 transition-all cursor-pointer flex flex-col gap-2 group"
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
-          {task.taskKey}
-        </span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
+            {task.taskKey}
+          </span>
+          {(task.team?.name || task.project?.team?.name) && (
+            <span className="text-[10px] text-zinc-400 font-medium truncate max-w-[100px]">
+              • {task.team?.name || task.project?.team?.name}
+            </span>
+          )}
+        </div>
         <span
           className={`text-[10px] px-2 py-0.5 rounded-md font-medium capitalize ${getPriorityBadge(
             task.priority,

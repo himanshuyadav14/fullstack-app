@@ -36,7 +36,7 @@ const ProjectSchema = new mongoose.Schema(
     team: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Team",
-      default: null,
+      required: [true, "Team reference is required"],
       index: true,
     },
     lead: {

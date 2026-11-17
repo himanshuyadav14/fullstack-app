@@ -4,6 +4,7 @@ const cloudinary = require("cloudinary").v2;
 const Organization = require("../models/Organization");
 const Membership = require("../models/Membership");
 const Role = require("../models/Role");
+const Team = require("../models/Team");
 const PERMISSIONS = require("../constants/permissions");
 const { slugify, generateSlugWithSuffix } = require("../utils/slugify");
 
@@ -273,7 +274,22 @@ const createMyOrganization = async (req, res) => {
       { session },
     );
 
-    // 12. Commit transaction
+    // 12. Create initial default team
+    await Team.create(
+      [
+        {
+          name: "Engineering",
+          description: "Core engineering, product architecture and development squad",
+          organization: organization._id,
+          lead: req.user.id,
+          members: [req.user.id],
+          createdBy: req.user.id,
+        },
+      ],
+      { session },
+    );
+
+    // 13. Commit transaction
     await session.commitTransaction();
 
     return res.status(201).json({

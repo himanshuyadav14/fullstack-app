@@ -94,30 +94,27 @@ const createProject = async (req, res) => {
       });
     }
 
-    // 4. Validate team if provided
-    let verifiedTeamId = null;
-    if (teamId) {
-      if (!mongoose.isValidObjectId(teamId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid team ID",
-        });
-      }
-
-      const team = await Team.findOne({
-        _id: teamId,
-        organization: req.organization._id,
+    // 4. Validate team is required (Strict Hierarchy: Org -> Team -> Project -> Task)
+    if (!teamId || !mongoose.isValidObjectId(teamId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid Team ID is required. Every project must belong to a team.",
       });
-
-      if (!team) {
-        return res.status(404).json({
-          success: false,
-          message: "Team not found in this organization",
-        });
-      }
-
-      verifiedTeamId = teamId;
     }
+
+    const team = await Team.findOne({
+      _id: teamId,
+      organization: req.organization._id,
+    });
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: "Team not found in this organization",
+      });
+    }
+
+    const verifiedTeamId = team._id;
 
     // 5. Validate lead if provided
     let verifiedLeadId = null;
