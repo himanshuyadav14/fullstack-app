@@ -9,7 +9,7 @@ import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 
 const MembersPage = () => {
-  const { currentOrg, currentRole, fetchMyOrgs } = useOrgStore();
+  const { currentOrg, currentRole, fetchMyOrgs, can, myPermissions } = useOrgStore();
   const { user } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState("members"); // "members" | "roles"
@@ -135,7 +135,15 @@ const MembersPage = () => {
     }
   };
 
-  const isOwnerOrAdmin = currentRole === "owner" || currentRole === "admin";
+  // Permission-based so custom roles get the right UI (backend enforces the same rules)
+  const isOwner = currentRole === "owner";
+  const canCreateRole = can("role:create");
+  const canUpdateRole = can("role:update");
+  const canDeleteRole = can("role:delete");
+  const canInvite = can("invitation:create");
+  const canUpdateMembers = can("member:update");
+  const canRemoveMembers = can("member:remove");
+  const ownPermissions = myPermissions();
 
   const filteredMembers = members.filter((m) => {
     const q = search.toLowerCase();
@@ -174,28 +182,28 @@ const MembersPage = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          {isOwnerOrAdmin && (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingRole(null);
-                  setShowCreateRoleModal(true);
-                }}
-                className="py-2 px-3.5 border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium rounded-lg text-sm transition-colors cursor-pointer"
-                title="Create a new custom role with custom permissions"
-              >
-                + Create Role
-              </button>
+          {canCreateRole && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingRole(null);
+                setShowCreateRoleModal(true);
+              }}
+              className="py-2 px-3.5 border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium rounded-lg text-sm transition-colors cursor-pointer"
+              title="Create a new custom role with custom permissions"
+            >
+              + Create Role
+            </button>
+          )}
 
-              <button
-                type="button"
-                onClick={() => setShowInviteModal(true)}
-                className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
-              >
-                + Invite Member
-              </button>
-            </>
+          {canInvite && (
+            <button
+              type="button"
+              onClick={() => setShowInviteModal(true)}
+              className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
+            >
+              + Invite Member
+            </button>
           )}
 
           {currentRole !== "owner" && (
@@ -269,18 +277,22 @@ const MembersPage = () => {
                   const isTargetAdmin = targetRoleName === "admin";
 
                   // Privilege checks for changing role
+                  // Same rules as backend updateMemberRole: only the owner may touch admins
                   const canChangeRole =
+                    canUpdateMembers &&
                     !isSelf &&
                     !isTargetOwner &&
-                    (currentRole === "owner" || (currentRole === "admin" && !isTargetAdmin));
+                    (isOwner || !isTargetAdmin);
 
                   // Available options based on requester authority
                   const allowedRoleOptions = availableRoles
                     .filter((r) => {
                       const rName = r.name?.toLowerCase();
                       if (rName === "owner") return false; // cannot assign owner
-                      if (currentRole === "admin" && rName === "admin") return false; // admins cannot assign admin
-                      return true;
+                      if (isOwner) return true;
+                      if (rName === "admin") return false; // only owner assigns admin
+                      // Can't hand out a role with more permissions than you have
+                      return (r.permissions || []).every((p) => ownPermissions.includes(p));
                     })
                     .map((r) => ({
                       value: r._id,
@@ -337,7 +349,7 @@ const MembersPage = () => {
                         )}
 
                         {/* Remove Action */}
-                        {isOwnerOrAdmin && !isTargetOwner && !isSelf && (
+                        {canRemoveMembers && !isTargetOwner && !isSelf && (isOwner || !isTargetAdmin) && (
                           <button
                             type="button"
                             onClick={() => handleRemoveMember(m._id, m.user?.name)}
@@ -396,8 +408,9 @@ const MembersPage = () => {
 
                     {/* Actions: Edit Permissions / Delete (Custom only) */}
                     <div className="flex items-center gap-2">
-                      {!isSystem && isOwnerOrAdmin ? (
+                      {!isSystem && (canUpdateRole || canDeleteRole) ? (
                         <>
+                          {canUpdateRole && (
                           <button
                             type="button"
                             onClick={() => {
@@ -412,7 +425,9 @@ const MembersPage = () => {
                             </svg>
                             <span>Edit Permissions</span>
                           </button>
+                          )}
 
+                          {canDeleteRole && (
                           <button
                             type="button"
                             onClick={() => handleDeleteRole(r._id, r.name)}
@@ -423,6 +438,7 @@ const MembersPage = () => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
+                          )}
                         </>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 py-1 px-2.5 rounded bg-zinc-100/50 dark:bg-zinc-800/40">

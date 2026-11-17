@@ -9,7 +9,7 @@ import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
 
 // Survives the login/signup/verify detour; AppLayout picks it up after sign-in.
-export const PENDING_INVITE_KEY = "pendingInviteToken";
+import { PENDING_INVITE_KEY } from "../utils/pendingInvite";
 
 const primaryBtn =
   "w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-xs text-sm cursor-pointer text-center block";

@@ -358,7 +358,7 @@ const getMyOrganizations = async (req, res) => {
         "organization",
         "name slug description logo teamSize industry status createdAt",
       )
-      .populate("role", "name description isSystemRole")
+      .populate("role", "name description isSystemRole permissions")
       .sort({ createdAt: -1 });
 
     const organizations = memberships
@@ -412,7 +412,7 @@ const getOrganizationById = async (req, res) => {
         "organization",
         "name slug description logo teamSize industry status createdAt",
       )
-      .populate("role", "name description isSystemRole");
+      .populate("role", "name description isSystemRole permissions");
 
     // Check membership
     if (!membership || !membership.organization) {

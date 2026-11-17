@@ -6,9 +6,7 @@ const { createNotification } = require("../services/notificationService");
 /**
  * Escapes special regex characters to prevent ReDoS and unexpected query matching
  */
-const escapeRegex = (string) => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-};
+const escapeRegex = require("../utils/escapeRegex");
 
 /**
  * 1. POST /api/organizations/:orgId/teams

@@ -14,9 +14,7 @@ const { emitToProject, emitToTask } = require("../socket");
 /**
  * Escapes special regex characters for safe search queries
  */
-const escapeRegex = (string) => {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-};
+const escapeRegex = require("../utils/escapeRegex");
 
 /**
  * 1. POST /api/organizations/:orgId/projects/:projectId/tasks
@@ -45,19 +43,12 @@ const createTask = async (req, res) => {
       });
     }
 
-    // 1. Verify project belongs to THIS organization and atomically increment counter
-    const project = await Project.findOneAndUpdate(
-      {
-        _id: projectId,
-        organization: req.organization._id,
-      },
-      {
-        $inc: { taskCounter: 1 },
-      },
-      {
-        new: true,
-      },
-    );
+    // 1. Verify project belongs to THIS organization (counter is incremented
+    // only after validation passes, so rejected requests don't burn task keys)
+    const project = await Project.findOne({
+      _id: projectId,
+      organization: req.organization._id,
+    });
 
     if (!project) {
       return res.status(404).json({
@@ -175,8 +166,13 @@ const createTask = async (req, res) => {
     const finalStatus = allowedStatuses.includes(status) ? status : "todo";
     const finalPriority = allowedPriorities.includes(priority) ? priority : "medium";
 
-    // 8. Generate task key e.g. TF-1, TF-2
-    const taskKey = `${project.key}-${project.taskCounter}`;
+    // 8. Atomically reserve the next number and generate task key e.g. TF-1, TF-2
+    const counter = await Project.findOneAndUpdate(
+      { _id: project._id },
+      { $inc: { taskCounter: 1 } },
+      { new: true, projection: { taskCounter: 1 } },
+    );
+    const taskKey = `${project.key}-${counter.taskCounter}`;
 
     // 9. Calculate initial column order (highest current order + 1)
     const lastTask = await Task.findOne({
@@ -564,13 +560,18 @@ const updateTask = async (req, res) => {
       task.priority = priority;
     }
 
-    // Update dates
-    if (startDate !== undefined) {
-      task.startDate = startDate ? new Date(startDate) : null;
-    }
-
-    if (dueDate !== undefined) {
-      task.dueDate = dueDate ? new Date(dueDate) : null;
+    // Update dates (reject unparseable values with 400 instead of failing on save)
+    for (const [field, value] of [["startDate", startDate], ["dueDate", dueDate]]) {
+      if (value === undefined) continue;
+      if (!value) {
+        task[field] = null;
+        continue;
+      }
+      const parsed = new Date(value);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ success: false, message: `Invalid ${field} format` });
+      }
+      task[field] = parsed;
     }
 
     if (task.startDate && task.dueDate && task.dueDate < task.startDate) {

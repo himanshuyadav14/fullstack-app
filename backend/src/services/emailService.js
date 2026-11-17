@@ -69,7 +69,8 @@ const sendInvitationEmail = async ({
  */
 const sendVerificationEmail = async ({ to, name, verificationToken }) => {
   try {
-    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    const verifyUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
       from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
@@ -111,7 +112,7 @@ const sendVerificationEmail = async ({ to, name, verificationToken }) => {
  */
 const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
   try {
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
     const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
 
     const mailOptions = {

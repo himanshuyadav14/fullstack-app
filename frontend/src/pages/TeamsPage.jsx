@@ -6,7 +6,7 @@ import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 
 const TeamsPage = () => {
-  const { currentOrg, currentRole } = useOrgStore();
+  const { currentOrg, can } = useOrgStore();
 
   const [teams, setTeams] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -34,8 +34,7 @@ const TeamsPage = () => {
     loadData();
   }, [currentOrg?._id]);
 
-  const isOwnerOrAdmin =
-    currentRole === "owner" || currentRole === "admin" || currentRole === "manager";
+  const canCreateTeam = can("team:create");
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -51,7 +50,7 @@ const TeamsPage = () => {
           </p>
         </div>
 
-        {isOwnerOrAdmin && (
+        {canCreateTeam && (
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
@@ -73,7 +72,7 @@ const TeamsPage = () => {
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">
             Create cross-functional teams like "Engineering", "Design", or "Product" to own projects and collaborate on tasks.
           </p>
-          {isOwnerOrAdmin && (
+          {canCreateTeam && (
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}

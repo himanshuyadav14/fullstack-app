@@ -5,6 +5,7 @@ const Organization = require("../models/Organization");
 const User = require("../models/User");
 const PERMISSIONS = require("../constants/permissions");
 const { createNotification } = require("../services/notificationService");
+const escapeRegex = require("../utils/escapeRegex");
 
 /**
  * 0a. GET /api/organizations/:orgId/roles/permissions
@@ -173,7 +174,7 @@ const getOrganizationMembers = async (req, res) => {
 
     // Optional search by member name or email
     if (req.query.search && typeof req.query.search === "string" && req.query.search.trim()) {
-      const searchRegex = new RegExp(req.query.search.trim(), "i");
+      const searchRegex = new RegExp(escapeRegex(req.query.search.trim().slice(0, 100)), "i");
       const matchedUsers = await User.find({
         $or: [{ name: searchRegex }, { email: searchRegex }],
       }).select("_id");

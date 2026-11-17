@@ -123,6 +123,26 @@ export const useOrgStore = create((set, get) => ({
   },
 
   /**
+   * Whether the current user's role in the selected org grants a permission.
+   * Mirrors the backend rule: owner can do everything, others need the permission.
+   * UI convenience only; the backend still enforces every action.
+   */
+  can: (permission) => {
+    const role = get().currentOrg?.role;
+    if (!role || typeof role !== "object") return false;
+    if (role.name === "owner") return true;
+    return Array.isArray(role.permissions) && role.permissions.includes(permission);
+  },
+
+  /**
+   * Permissions of the current role, for "can't grant more than you have" checks
+   */
+  myPermissions: () => {
+    const role = get().currentOrg?.role;
+    return Array.isArray(role?.permissions) ? role.permissions : [];
+  },
+
+  /**
    * Reset in-memory store (used on logout).
    * Note: We deliberately preserve selectedOrgId and currentOrg in localStorage
    * so that when the user logs back in, their selected workspace is remembered.

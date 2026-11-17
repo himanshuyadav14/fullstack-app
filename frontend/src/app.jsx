@@ -1,19 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import AppLayout from "./layout/AppLayout";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import VerifyEmail from "./pages/VerifyEmail";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import DashboardPage from "./pages/DashboardPage";
-import KanbanPage from "./pages/KanbanPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import MembersPage from "./pages/MembersPage";
-import TeamsPage from "./pages/TeamsPage";
-import AcceptInvitation from "./pages/AcceptInvitation";
+import PageLoader from "./components/common/PageLoader";
 import { useAuthStore } from "./stores/authStore";
+
+// Pages are code-split: each one's JS downloads only when its route is opened
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const KanbanPage = lazy(() => import("./pages/KanbanPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const MembersPage = lazy(() => import("./pages/MembersPage"));
+const TeamsPage = lazy(() => import("./pages/TeamsPage"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
 
 // Protected Route Guard: requires active session
 const ProtectedRoute = ({ children }) => {
@@ -42,6 +45,7 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <Suspense fallback={<div className="min-h-screen flex"><PageLoader /></div>}>
       <Routes>
         {/* Protected App Routes with AppLayout Wrapper */}
         <Route
@@ -110,6 +114,7 @@ const App = () => {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
 
       {/* Global Hot Toaster Notification Provider */}
       <Toaster

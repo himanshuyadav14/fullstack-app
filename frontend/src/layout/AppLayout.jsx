@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import PageLoader from "../components/common/PageLoader";
 import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import OrbitLogo from "../components/common/OrbitLogo";
@@ -12,7 +13,7 @@ import {
   joinRoomWhileConnected,
   useSocket,
 } from "../services/socket";
-import { PENDING_INVITE_KEY } from "../pages/AcceptInvitation";
+import { PENDING_INVITE_KEY } from "../utils/pendingInvite";
 
 const AppLayout = () => {
   const navigate = useNavigate();
@@ -97,7 +98,10 @@ const AppLayout = () => {
             </button>
           </div>
         ) : (
-          <Outlet />
+          // Local boundary so a lazily loaded page doesn't blank out the navbar
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         )}
       </main>
 
