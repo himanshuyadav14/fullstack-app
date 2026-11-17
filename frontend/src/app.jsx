@@ -46,6 +46,7 @@ const App = () => {
           }
         >
           <Route index element={<DashboardPage />} />
+          <Route path="board" element={<KanbanPage />} />
           <Route path="kanban" element={<KanbanPage />} />
           <Route path="members" element={<MembersPage />} />
           <Route path="teams" element={<TeamsPage />} />

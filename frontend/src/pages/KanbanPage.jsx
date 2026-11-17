@@ -144,6 +144,8 @@ const KanbanPage = () => {
     }
   };
 
+  const currentProject = projects.find((p) => p._id === selectedProjectId);
+
   return (
     <div className="space-y-6">
       {/* Action Bar */}
@@ -160,11 +162,19 @@ const KanbanPage = () => {
               options={projects.map((p) => ({
                 value: p._id,
                 label: `${p.name} (${p.key})`,
+                badge: p.team?.name || null,
               }))}
-              className="min-w-[190px]"
+              className="min-w-[210px]"
             />
           ) : (
             <span className="text-xs text-slate-400">No projects created yet</span>
+          )}
+
+          {currentProject?.team?.name && (
+            <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-300 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Team:</span>
+              <span className="font-semibold">{currentProject.team.name}</span>
+            </div>
           )}
 
           <button
@@ -190,13 +200,13 @@ const KanbanPage = () => {
       {/* Kanban Board Columns */}
       {loading ? (
         <div className="py-20 text-center text-sm text-zinc-500">
-          Syncing Kanban tasks...
+          Syncing board tasks...
         </div>
       ) : projects.length === 0 ? (
         <div className="max-w-md mx-auto my-16 p-8 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl">
           <h3 className="text-lg font-bold mb-2">No Projects Found</h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 leading-relaxed">
-            Create your first project to start tracking tasks and sprints on the Kanban board.
+            Create your first project to start tracking tasks and sprints on the board.
           </p>
           <button
             type="button"

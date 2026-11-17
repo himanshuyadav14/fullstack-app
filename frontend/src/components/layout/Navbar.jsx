@@ -13,7 +13,10 @@ const Navbar = ({ onOpenCreateOrg }) => {
   const { unreadCount } = useNotificationStore();
 
   const getNavLinkClass = (path) => {
-    const isActive = location.pathname === path;
+    const isActive =
+      path === "/board"
+        ? location.pathname === "/board" || location.pathname === "/kanban"
+        : location.pathname === path;
     return `px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
       isActive
         ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs"
@@ -80,8 +83,8 @@ const Navbar = ({ onOpenCreateOrg }) => {
             <Link to="/" className={getNavLinkClass("/")}>
               Dashboard
             </Link>
-            <Link to="/kanban" className={getNavLinkClass("/kanban")}>
-              Kanban
+            <Link to="/board" className={getNavLinkClass("/board")}>
+              Board
             </Link>
             <Link to="/members" className={getNavLinkClass("/members")}>
               Members

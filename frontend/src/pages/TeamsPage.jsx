@@ -8,24 +8,29 @@ const TeamsPage = () => {
   const { currentOrg, currentRole } = useOrgStore();
 
   const [teams, setTeams] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const loadTeams = async () => {
+  const loadData = async () => {
     if (!currentOrg?._id) return;
     setLoading(true);
     try {
-      const res = await api.get(ENDPOINTS.TEAMS.LIST_CREATE(currentOrg._id));
-      setTeams(res.data.data || []);
+      const [teamsRes, projectsRes] = await Promise.all([
+        api.get(ENDPOINTS.TEAMS.LIST_CREATE(currentOrg._id)),
+        api.get(ENDPOINTS.PROJECTS.LIST_CREATE(currentOrg._id)),
+      ]);
+      setTeams(teamsRes.data.data || []);
+      setProjects(projectsRes.data.data || []);
     } catch (err) {
-      console.error("Failed to load teams:", err);
+      console.error("Failed to load teams or projects:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadTeams();
+    loadData();
   }, [currentOrg?._id]);
 
   const isOwnerOrAdmin =
@@ -37,9 +42,9 @@ const TeamsPage = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Teams & Departments</h2>
-          <p className="text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
-            Organize members into functional squads for{" "}
-            <strong className="text-blue-600 dark:text-blue-400">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Organize members into functional squads and assign projects for{" "}
+            <strong className="text-zinc-900 dark:text-zinc-100">
               {currentOrg?.name}
             </strong>
           </p>
@@ -59,13 +64,13 @@ const TeamsPage = () => {
       {/* Teams Grid */}
       {loading ? (
         <div className="py-20 text-center text-sm text-zinc-500">
-          Loading team squads...
+          Loading teams & squads...
         </div>
       ) : teams.length === 0 ? (
         <div className="p-12 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs">
           <h3 className="text-base font-bold mb-1">No Teams Created Yet</h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">
-            Create cross-functional teams like "Engineering", "Design", or "Growth" to organize assignments.
+            Create cross-functional teams like "Engineering", "Design", or "Product" to own projects and collaborate on tasks.
           </p>
           {isOwnerOrAdmin && (
             <button
@@ -79,32 +84,67 @@ const TeamsPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {teams.map((t) => (
-            <div
-              key={t._id}
-              className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between gap-3 hover:border-slate-300 dark:hover:border-zinc-700 transition-colors"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                    {t.name}
-                  </h4>
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                    {t.members?.length || 0} members
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                  {t.description || "No description provided."}
-                </p>
-              </div>
+          {teams.map((t) => {
+            const teamProjects = projects.filter(
+              (p) => p.team?._id === t._id || p.team === t._id
+            );
 
-              {t.lead && (
-                <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 text-xs text-slate-500 dark:text-zinc-400">
-                  Team Lead: <span className="font-semibold text-slate-700 dark:text-zinc-300">{t.lead.name}</span>
+            return (
+              <div
+                key={t._id}
+                className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between gap-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-base font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                      {t.name}
+                    </h4>
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
+                      {t.members?.length || 0} members
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mb-3">
+                    {t.description || "No description provided."}
+                  </p>
+
+                  {/* Assigned Projects */}
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                      Assigned Projects ({teamProjects.length})
+                    </div>
+                    {teamProjects.length === 0 ? (
+                      <span className="text-xs text-zinc-400 italic">
+                        No projects assigned to this team yet.
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {teamProjects.map((p) => (
+                          <span
+                            key={p._id}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700"
+                          >
+                            <span>{p.name}</span>
+                            <span className="font-mono text-[10px] text-zinc-500">
+                              ({p.key})
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {t.lead && (
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
+                    Team Lead:{" "}
+                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      {t.lead.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
