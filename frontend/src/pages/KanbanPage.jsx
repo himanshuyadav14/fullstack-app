@@ -73,10 +73,25 @@ const KanbanPage = () => {
     setLoading(true);
     try {
       const res = await api.get(ENDPOINTS.PROJECTS.KANBAN_TASKS(currentOrg._id, pId));
-      const kanbanCols = res.data.data || {};
+      let kanbanCols = res.data.columns || res.data.data || {};
+
+      if (Array.isArray(res.data.data)) {
+        kanbanCols = { todo: [], in_progress: [], done: [] };
+        res.data.data.forEach((t) => {
+          if (t.status === "done") kanbanCols.done.push(t);
+          else if (t.status === "in_progress" || t.status === "in_review") kanbanCols.in_progress.push(t);
+          else kanbanCols.todo.push(t);
+        });
+      }
+
+      const inProgressList = [
+        ...(kanbanCols.in_progress || []),
+        ...(kanbanCols.in_review || []),
+      ];
+
       setTasks({
         todo: kanbanCols.todo || [],
-        in_progress: kanbanCols.in_progress || [],
+        in_progress: inProgressList,
         done: kanbanCols.done || [],
       });
     } catch (err) {

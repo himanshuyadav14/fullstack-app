@@ -38,6 +38,7 @@ router.delete("/:projectId/members/:userId", removeProjectMember);
 // Project Tasks & Kanban Board
 router.post("/:projectId/tasks", requireOrgPermission("task:create"), createTask);
 router.get("/:projectId/tasks", requireOrgPermission("task:read"), getProjectKanbanTasks);
+router.get("/:projectId/tasks/kanban", requireOrgPermission("task:read"), getProjectKanbanTasks);
 
 module.exports = router;
 

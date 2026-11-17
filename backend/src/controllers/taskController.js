@@ -369,6 +369,7 @@ const getProjectKanbanTasks = async (req, res) => {
     const tasks = await Task.find(filter)
       .populate("assignee", "name email avatar")
       .populate("reporter", "name email avatar")
+      .populate("team", "name")
       .sort({ status: 1, order: 1, createdAt: -1 });
 
     // Format tasks grouped by Kanban columns
@@ -395,7 +396,8 @@ const getProjectKanbanTasks = async (req, res) => {
       },
       total: tasks.length,
       columns,
-      data: tasks,
+      data: columns,
+      tasks,
     });
   } catch (error) {
     console.error("getProjectKanbanTasks Error:", error);
