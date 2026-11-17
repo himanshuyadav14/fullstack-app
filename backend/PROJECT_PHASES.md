@@ -397,15 +397,22 @@
 
 ### Phase 13: Hardening, Security & Production Readiness
 
-**Status:** ⏳ Upcoming
+**Status:** ✅ Completed
 
 #### 1. Scope & Goals
 
-- Centralized error handling middleware.
-- Input validation layer (e.g. Joi or custom validator middleware).
-- Rate limiting on sensitive routes (auth, password reset).
-- MongoDB index optimization for fast queries and uniqueness constraints.
-- CORS hardening and security headers.
+- Enterprise security HTTP headers via `helmet`.
+- Multi-tier rate limiting using `express-rate-limit`:
+  - `authLimiter`: Strict 20 req/15min brute-force & spam shield on `/api/auth`.
+  - `apiLimiter`: 500 req/15min general DDoS protection across `/api`.
+  - `fileUploadLimiter`: 30 uploads/15min memory buffer & Cloudinary bandwidth shield.
+- Centralized Error Handling (`src/middleware/errorHandler.js`):
+  - Standardized JSON responses for Mongoose `CastError`, `ValidationError`, MongoDB `E11000 Duplicate Key`, JWT errors, Multer upload errors, and malformed JSON payloads.
+  - Production stack trace masking (`Internal Server Error` vs verbose local dev traces).
+- 404 Route Not Found handler (`notFoundHandler.js`) returning standardized JSON.
+- Process reliability:
+  - Graceful shutdown handlers for `SIGTERM` and `SIGINT`.
+  - Global `unhandledRejection` and `uncaughtException` monitors.
 
 ---
 
@@ -430,3 +437,4 @@
 | **Nov 14, 2026** | **Phase 10**| In-App Notifications: schema & compound index, notificationService with anti-self-notification guard, task & comment triggers, CRUD endpoints, and Postman folder 11. | Code verified    |
 | **Nov 15, 2026** | **Phase 11**| Real-Time WebSockets: Socket.IO setup on HTTP server, JWT handshake auth (`socketAuth.js`), scoped room partitioning (`user`, `org`, `project`, `task`), live triggers for notifications, Kanban updates, and discussions. | Live Test verified |
 | **Nov 15, 2026** | **Phase 12**| Dashboard & Analytics APIs: MongoDB single-pass `$facet` aggregation pipelines, executive dashboard KPIs, project completion metrics, member workload capacity, personal summary, and Postman folder 12. | Live Test verified |
+| **Nov 15, 2026** | **Phase 13**| Hardening & Security: Helmet HTTP security headers, multi-tier rate limiters (`authLimiter`, `apiLimiter`, `fileUploadLimiter`), centralized error handler (`errorHandler.js`), 404 handler, and graceful shutdown. | Live Test verified |

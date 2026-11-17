@@ -4,6 +4,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizePermission = require("../middleware/authorizePermission");
 const { uploadAvatarMiddleware } = require("../middleware/uploadMiddleware");
+const { fileUploadLimiter } = require("../middleware/rateLimiter");
 
 const {
   getAllUsers,
@@ -22,7 +23,7 @@ router.get("/", authMiddleware, authorizePermission("user:read"), getAllUsers);
 // Profile Management
 router.patch("/profile", authMiddleware, updateUserProfile);
 router.delete("/profile", authMiddleware, deleteOwnAccount);
-router.post("/profile/avatar", authMiddleware, uploadAvatarMiddleware, uploadUserAvatar);
+router.post("/profile/avatar", authMiddleware, fileUploadLimiter, uploadAvatarMiddleware, uploadUserAvatar);
 router.delete("/profile/avatar", authMiddleware, deleteUserAvatar);
 
 // Get user by ID
