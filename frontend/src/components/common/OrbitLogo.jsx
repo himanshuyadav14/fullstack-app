@@ -1,6 +1,6 @@
 /**
  * Modern B2B SaaS Geometric Orbit Logo (Linear / Vercel Aesthetic)
- * Full continuous solid lines with complete visibility and zero clipping.
+ * Features dynamic depth with contrasting thick (foreground) and thin (background) continuous lines.
  */
 const OrbitLogo = ({ className = "w-6 h-6", size }) => {
   const style = size ? { width: `${size}px`, height: `${size}px` } : undefined;
@@ -13,7 +13,20 @@ const OrbitLogo = ({ className = "w-6 h-6", size }) => {
       className={className}
       style={style}
     >
-      {/* Primary Orbital Ellipse (Full complete continuous line) */}
+      {/* Secondary Background Orbit (Thin, delicate, continuous line for 3D depth) */}
+      <ellipse
+        cx="18"
+        cy="18"
+        rx="13.8"
+        ry="5.4"
+        transform="rotate(34 18 18)"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
+
+      {/* Primary Foreground Orbit (Bold, prominent, continuous line) */}
       <ellipse
         cx="18"
         cy="18"
@@ -23,25 +36,14 @@ const OrbitLogo = ({ className = "w-6 h-6", size }) => {
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
+        opacity="1"
       />
 
-      {/* Secondary Cross Orbital Ellipse (Full complete continuous line) */}
-      <ellipse
-        cx="18"
-        cy="18"
-        rx="13.8"
-        ry="5.4"
-        transform="rotate(34 18 18)"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-
-      {/* Central Core Nucleus */}
+      {/* Central Core Gravitational Nucleus */}
       <circle cx="18" cy="18" r="3.6" fill="currentColor" />
 
-      {/* Orbiting Satellite Node */}
-      <circle cx="30.6" cy="11.8" r="2" fill="currentColor" />
+      {/* Orbiting Satellite Node on Primary Track */}
+      <circle cx="30.6" cy="11.8" r="2.2" fill="currentColor" />
     </svg>
   );
 };
