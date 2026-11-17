@@ -354,7 +354,7 @@ const KanbanPage = () => {
           </button>
         </div>
       ) : (
-        <div className="flex gap-5 overflow-x-auto pb-4">
+        <div className="flex gap-5 overflow-x-auto p-1 pb-4">
           <KanbanColumn
             title="To Do"
             status="todo"
