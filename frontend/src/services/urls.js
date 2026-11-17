@@ -42,6 +42,8 @@ export const ENDPOINTS = {
     TRANSFER_OWNERSHIP: (orgId) =>
       `/organizations/${orgId}/transfer-ownership`,
     INVITATIONS: (orgId) => `/organizations/${orgId}/invitations`,
+    REVOKE_INVITATION: (orgId, invitationId) =>
+      `/organizations/${orgId}/invitations/${invitationId}`,
   },
 
   // 3b. Invitations (invitee side)
@@ -49,6 +51,8 @@ export const ENDPOINTS = {
     MY: "/invitations/my",
     ACCEPT: "/invitations/accept",
     REJECT: "/invitations/reject",
+    ACCEPT_BY_ID: (invitationId) => `/invitations/${invitationId}/accept`,
+    REJECT_BY_ID: (invitationId) => `/invitations/${invitationId}/reject`,
   },
 
   // 4. Teams
@@ -68,6 +72,10 @@ export const ENDPOINTS = {
       `/organizations/${orgId}/projects/${projectId}`,
     KANBAN_TASKS: (orgId, projectId) =>
       `/organizations/${orgId}/projects/${projectId}/tasks/kanban`,
+    ADD_MEMBERS: (orgId, projectId) =>
+      `/organizations/${orgId}/projects/${projectId}/members`,
+    REMOVE_MEMBER: (orgId, projectId, userId) =>
+      `/organizations/${orgId}/projects/${projectId}/members/${userId}`,
   },
 
   // 6. Tasks & Attachments

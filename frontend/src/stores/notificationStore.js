@@ -85,6 +85,29 @@ export const useNotificationStore = create((set, get) => ({
   },
 
   /**
+   * Delete a single notification
+   */
+  deleteNotification: async (notificationId) => {
+    try {
+      await api.delete(ENDPOINTS.NOTIFICATIONS.DELETE(notificationId));
+      set((state) => {
+        const removed = state.notifications.find((n) => n._id === notificationId);
+        return {
+          notifications: state.notifications.filter((n) => n._id !== notificationId),
+          unreadCount:
+            removed && !removed.isRead ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+        };
+      });
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to delete notification",
+      };
+    }
+  },
+
+  /**
    * Real-time incoming event from Socket.IO:
    * Prepends new alert to top of list and increments unread count badge
    */

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useOrgStore } from "../stores/orgStore";
 import CreateTeamModal from "../components/modals/CreateTeamModal";
+import TeamDetailModal from "../components/modals/TeamDetailModal";
+import ProjectSettingsModal from "../components/modals/ProjectSettingsModal";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 
@@ -12,6 +14,8 @@ const TeamsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [openTeamId, setOpenTeamId] = useState(null);
+  const [openProjectId, setOpenProjectId] = useState(null);
 
   const loadData = async () => {
     if (!currentOrg?._id) return;
@@ -93,7 +97,14 @@ const TeamsPage = () => {
             return (
               <div
                 key={t._id}
-                className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between gap-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenTeamId(t._id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setOpenTeamId(t._id);
+                }}
+                title="Open team details"
+                className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between gap-4 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors cursor-pointer"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -120,15 +131,21 @@ const TeamsPage = () => {
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {teamProjects.map((p) => (
-                          <span
+                          <button
+                            type="button"
                             key={p._id}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700"
+                            onClick={(e) => {
+                              e.stopPropagation(); // open the project, not the team
+                              setOpenProjectId(p._id);
+                            }}
+                            title="Project settings"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 cursor-pointer"
                           >
                             <span>{p.name}</span>
                             <span className="font-mono text-[10px] text-zinc-500">
                               ({p.key})
                             </span>
-                          </span>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -177,6 +194,26 @@ const TeamsPage = () => {
             );
           })}
         </div>
+      )}
+
+      {openTeamId && (
+        <TeamDetailModal
+          orgId={currentOrg?._id}
+          teamId={openTeamId}
+          onClose={() => setOpenTeamId(null)}
+          onChanged={loadData}
+          onDeleted={(id) => setTeams((prev) => prev.filter((t) => t._id !== id))}
+        />
+      )}
+
+      {openProjectId && (
+        <ProjectSettingsModal
+          orgId={currentOrg?._id}
+          projectId={openProjectId}
+          onClose={() => setOpenProjectId(null)}
+          onChanged={loadData}
+          onDeleted={(id) => setProjects((prev) => prev.filter((p) => p._id !== id))}
+        />
       )}
 
       {/* Create Team Modal */}

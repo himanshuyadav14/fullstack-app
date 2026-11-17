@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-
 import { Toaster } from "react-hot-toast";
 import AppLayout from "./layout/AppLayout";
 import PageLoader from "./components/common/PageLoader";
+import ConfirmDialog from "./components/common/ConfirmDialog";
 import { useAuthStore } from "./stores/authStore";
 
 // Pages are code-split: each one's JS downloads only when its route is opened
@@ -17,6 +18,9 @@ const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const MembersPage = lazy(() => import("./pages/MembersPage"));
 const TeamsPage = lazy(() => import("./pages/TeamsPage"));
 const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const MyTasksPage = lazy(() => import("./pages/MyTasksPage"));
+const OrgSettingsPage = lazy(() => import("./pages/OrgSettingsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
 // Protected Route Guard: requires active session
 const ProtectedRoute = ({ children }) => {
@@ -62,6 +66,9 @@ const App = () => {
           <Route path="members" element={<MembersPage />} />
           <Route path="teams" element={<TeamsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="tasks" element={<MyTasksPage />} />
+          <Route path="settings" element={<OrgSettingsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         {/* Public Authentication Routes */}
@@ -115,6 +122,9 @@ const App = () => {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>
+
+      {/* App-wide confirmation dialog, opened via confirm() from stores/confirmStore */}
+      <ConfirmDialog />
 
       {/* Global Hot Toaster Notification Provider */}
       <Toaster

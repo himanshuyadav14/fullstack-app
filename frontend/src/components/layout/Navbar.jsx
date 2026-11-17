@@ -116,6 +116,9 @@ const Navbar = ({ onOpenCreateOrg }) => {
             <Link to="/board" className={getNavLinkClass("/board")}>
               Board
             </Link>
+            <Link to="/tasks" className={getNavLinkClass("/tasks")}>
+              Tasks
+            </Link>
             <Link to="/teams" className={getNavLinkClass("/teams")}>
               Teams
             </Link>
@@ -167,9 +170,13 @@ const Navbar = ({ onOpenCreateOrg }) => {
             className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-900/60 transition-colors cursor-pointer"
             title="User account & workspace settings"
           >
-            <div className="w-6 h-6 rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-bold text-[11px] flex items-center justify-center uppercase shadow-2xs">
-              {user?.name?.charAt(0) || "U"}
-            </div>
+            {user?.avatar ? (
+              <img src={user.avatar} alt="" className="w-6 h-6 rounded-md object-cover shadow-2xs" />
+            ) : (
+              <div className="w-6 h-6 rounded-md bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-bold text-[11px] flex items-center justify-center uppercase shadow-2xs">
+                {user?.name?.charAt(0) || "U"}
+              </div>
+            )}
             <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 max-w-[110px] truncate">
               {user?.name}
             </span>
@@ -208,11 +215,37 @@ const Navbar = ({ onOpenCreateOrg }) => {
                 )}
               </div>
 
+              {/* Account */}
+              <div className="py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Your Profile</span>
+                </Link>
+              </div>
+
               {/* Workspace Navigation Links */}
+              {currentOrg && (
               <div className="py-1">
                 <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                   Workspace
                 </div>
+                <Link
+                  to="/settings"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Workspace Settings</span>
+                </Link>
                 <Link
                   to="/members"
                   onClick={() => setIsUserMenuOpen(false)}
@@ -255,6 +288,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
                   <span>Teams & Squads</span>
                 </Link>
               </div>
+              )}
 
               {/* Divider */}
               <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />

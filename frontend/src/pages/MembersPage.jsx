@@ -4,6 +4,8 @@ import { useOrgStore } from "../stores/orgStore";
 import { useAuthStore } from "../stores/authStore";
 import InviteMemberModal from "../components/modals/InviteMemberModal";
 import CreateRoleModal from "../components/modals/CreateRoleModal";
+import InvitationsPanel from "../components/members/InvitationsPanel";
+import { confirm } from "../stores/confirmStore";
 import CustomSelect from "../components/common/CustomSelect";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
@@ -22,6 +24,9 @@ const MembersPage = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
+  const [invitesReloadKey, setInvitesReloadKey] = useState(0);
+  const [pendingInviteCount, setPendingInviteCount] = useState(null);
+  const canReadInvitations = can("invitation:read");
 
   const loadMembers = async () => {
     if (!currentOrg?._id) return;
@@ -54,6 +59,17 @@ const MembersPage = () => {
   }, [currentOrg?._id]);
 
   const handleRoleChange = async (memberId, newRoleId, memberName) => {
+    const member = members.find((m) => m._id === memberId);
+    if (member?.role?._id === newRoleId) return;
+    const targetRoleName = availableRoles.find((r) => r._id === newRoleId)?.name || "this role";
+    const ok = await confirm({
+      title: `Change ${memberName}'s role?`,
+      message: `${member?.role?.name || "Current role"} → ${targetRoleName}. Their permissions change immediately.`,
+      confirmLabel: "Change Role",
+      tone: "default",
+    });
+    if (!ok) return;
+
     setUpdatingMemberId(memberId);
     try {
       await api.patch(
@@ -90,9 +106,12 @@ const MembersPage = () => {
   };
 
   const handleRemoveMember = async (memberId, memberName) => {
-    if (!window.confirm(`Are you sure you want to remove ${memberName} from this workspace?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Remove ${memberName}?`,
+      message: "They'll lose access to this workspace's teams, projects and tasks.",
+      confirmLabel: "Remove Member",
+    });
+    if (!ok) return;
 
     try {
       await api.delete(ENDPOINTS.ORGANIZATIONS.REMOVE_MEMBER(currentOrg._id, memberId));
@@ -104,13 +123,12 @@ const MembersPage = () => {
   };
 
   const handleDeleteRole = async (roleId, roleName) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete custom role "${roleName.toUpperCase()}"? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Delete role "${roleName}"?`,
+      message: "This cannot be undone. Roles still assigned to members can't be deleted.",
+      confirmLabel: "Delete Role",
+    });
+    if (!ok) return;
 
     try {
       await api.delete(ENDPOINTS.ORGANIZATIONS.DELETE_ROLE(currentOrg._id, roleId));
@@ -122,9 +140,12 @@ const MembersPage = () => {
   };
 
   const handleLeaveOrg = async () => {
-    if (!window.confirm(`Are you sure you want to leave ${currentOrg.name}?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Leave ${currentOrg.name}?`,
+      message: "You'll lose access to its teams, projects and tasks, and need a new invitation to rejoin.",
+      confirmLabel: "Leave Workspace",
+    });
+    if (!ok) return;
 
     try {
       await api.post(ENDPOINTS.ORGANIZATIONS.LEAVE(currentOrg._id));
@@ -242,7 +263,32 @@ const MembersPage = () => {
         >
           Roles & Permissions ({availableRoles.length})
         </button>
+        {canReadInvitations && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("invitations")}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "invitations"
+                ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-2xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            Invitations{pendingInviteCount !== null ? ` (${pendingInviteCount})` : ""}
+          </button>
+        )}
       </div>
+
+      {/* TAB 3: INVITATIONS (kept mounted so the pending count stays current) */}
+      {canReadInvitations && (
+        <div className={activeTab === "invitations" ? "" : "hidden"}>
+          <InvitationsPanel
+            orgId={currentOrg?._id}
+            canRevoke={can("invitation:revoke")}
+            reloadKey={invitesReloadKey}
+            onCountChange={setPendingInviteCount}
+          />
+        </div>
+      )}
 
       {/* TAB 1: MEMBERS LIST */}
       {activeTab === "members" && (
@@ -476,7 +522,10 @@ const MembersPage = () => {
         <InviteMemberModal
           orgId={currentOrg?._id}
           onClose={() => setShowInviteModal(false)}
-          onMemberInvited={loadMembers}
+          onMemberInvited={() => {
+            loadMembers();
+            setInvitesReloadKey((k) => k + 1);
+          }}
         />
       )}
 

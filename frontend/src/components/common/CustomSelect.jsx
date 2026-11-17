@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Industry-Standard Minimalist Monochrome Dropdown Select
@@ -27,18 +28,57 @@ const CustomSelect = ({
   footerAction,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState(null);
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
 
-  // Close on outside click
+  // Close on outside click (the menu lives in a portal, so check it separately)
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
+      const inTrigger = containerRef.current?.contains(e.target);
+      const inMenu = menuRef.current?.contains(e.target);
+      if (!inTrigger && !inMenu) setIsOpen(false);
     };
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  // The menu is rendered in a portal with fixed positioning so parents with
+  // overflow hidden/auto (cards, modals) can't clip it. Track the trigger's
+  // position while open; open upwards when there isn't room below.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const place = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const gap = 6;
+      const maxMenuHeight = 256 + 16;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < maxMenuHeight && rect.top > spaceBelow;
+      const width = Math.max(rect.width, 200);
+      // Keep it on screen horizontally
+      const left = Math.min(rect.left, window.innerWidth - width - 8);
+
+      setMenuStyle({
+        position: "fixed",
+        left: Math.max(8, left),
+        width,
+        ...(openUp
+          ? { bottom: window.innerHeight - rect.top + gap }
+          : { top: rect.bottom + gap }),
+      });
+    };
+
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true); // capture: any scrolling ancestor
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [isOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -72,8 +112,11 @@ const CustomSelect = ({
 
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={`w-full flex items-center justify-between gap-2.5 rounded-lg border text-left transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 ${
           isSmall ? "px-3 py-1.5 text-xs font-medium" : "px-3.5 py-2.5 text-sm"
@@ -143,10 +186,13 @@ const CustomSelect = ({
         </p>
       )}
 
-      {/* Dropdown Menu */}
-      {isOpen && (
+      {/* Dropdown Menu (portal: never clipped by overflow on ancestors) */}
+      {isOpen && menuStyle && createPortal(
         <div
-          className={`absolute z-50 left-0 mt-1.5 py-1.5 min-w-[200px] w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/50 max-h-64 overflow-y-auto ${menuClassName}`}
+          ref={menuRef}
+          role="listbox"
+          style={menuStyle}
+          className={`z-70 py-1.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/50 max-h-64 overflow-y-auto ${menuClassName}`}
         >
           {headerTitle && (
             <div className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -248,7 +294,8 @@ const CustomSelect = ({
               </button>
             </>
           )}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

@@ -5,6 +5,7 @@ import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 import { useAuthStore } from "../stores/authStore";
 import { useOrgStore } from "../stores/orgStore";
+import { confirm } from "../stores/confirmStore";
 import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
 
@@ -59,7 +60,12 @@ const AcceptInvitation = () => {
   };
 
   const handleReject = async () => {
-    if (!window.confirm("Decline this invitation?")) return;
+    const ok = await confirm({
+      title: "Decline this invitation?",
+      message: "You'll need a new invitation to join this workspace later.",
+      confirmLabel: "Decline",
+    });
+    if (!ok) return;
     setBusy("reject");
     setError("");
     try {

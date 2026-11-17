@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../common/Modal";
+import Checkbox from "../common/Checkbox";
+import { useOrgStore } from "../../stores/orgStore";
 import api from "../../services/api";
 import { ENDPOINTS } from "../../services/urls";
 
@@ -77,18 +79,38 @@ const CreateRoleModal = ({
   const isEditing = Boolean(roleToEdit);
   const [name, setName] = useState(roleToEdit?.name || "");
   const [description, setDescription] = useState(roleToEdit?.description || "");
-  const [selectedPermissions, setSelectedPermissions] = useState(
-    roleToEdit?.permissions || [
-      "task:read",
-      "task:create",
-      "task:update",
-      "comment:read",
-      "comment:create",
-      "project:read",
-    ]
-  );
+  const [selectedPermissions, setSelectedPermissions] = useState(() => {
+    if (roleToEdit?.permissions) return roleToEdit.permissions;
+    const defaults = ["task:read", "task:create", "task:update", "comment:read", "comment:create", "project:read"];
+    // New roles start with sensible defaults, limited to what the creator may grant
+    const { currentRole, myPermissions } = useOrgStore.getState();
+    return currentRole === "owner" ? defaults : defaults.filter((p) => myPermissions().includes(p));
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [serverPermissions, setServerPermissions] = useState(null);
+
+  const { currentRole, myPermissions } = useOrgStore();
+  const isOwner = currentRole === "owner";
+  const ownPermissions = myPermissions();
+  // Backend rejects roles granting more than the editor has (owner excepted)
+  const isGrantable = (key) => isOwner || ownPermissions.includes(key);
+
+  // Keep the checklist in sync with what the server actually supports
+  useEffect(() => {
+    if (!orgId) return;
+    api
+      .get(ENDPOINTS.ORGANIZATIONS.PERMISSIONS(orgId))
+      .then((res) => setServerPermissions(res.data.data || null))
+      .catch(() => setServerPermissions(null)); // fall back to the built-in list
+  }, [orgId]);
+
+  const permissionGroups = serverPermissions
+    ? PERMISSION_GROUPS.map((g) => ({
+        ...g,
+        permissions: g.permissions.filter((p) => serverPermissions.includes(p.key)),
+      })).filter((g) => g.permissions.length > 0)
+    : PERMISSION_GROUPS;
 
   const togglePermission = (key) => {
     setSelectedPermissions((prev) =>
@@ -97,7 +119,7 @@ const CreateRoleModal = ({
   };
 
   const toggleGroup = (groupPermissions) => {
-    const keys = groupPermissions.map((p) => p.key);
+    const keys = groupPermissions.map((p) => p.key).filter(isGrantable);
     const allSelected = keys.every((k) => selectedPermissions.includes(k));
 
     if (allSelected) {
@@ -108,8 +130,8 @@ const CreateRoleModal = ({
   };
 
   const handleSelectAll = () => {
-    const all = PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key));
-    setSelectedPermissions(all);
+    const all = permissionGroups.flatMap((g) => g.permissions.map((p) => p.key));
+    setSelectedPermissions(all.filter(isGrantable));
   };
 
   const handleClearAll = () => {
@@ -226,9 +248,15 @@ const CreateRoleModal = ({
             </div>
           </div>
 
+          {!isOwner && (
+            <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+              You can only grant permissions your own role has. Others are greyed out.
+            </p>
+          )}
+
           {/* Permissions Accordion / Groups */}
           <div className="mt-3 max-h-72 overflow-y-auto space-y-4 pr-1">
-            {PERMISSION_GROUPS.map((group) => {
+            {permissionGroups.map((group) => {
               const groupKeys = group.permissions.map((p) => p.key);
               const allChecked = groupKeys.every((k) =>
                 selectedPermissions.includes(k)
@@ -262,16 +290,22 @@ const CreateRoleModal = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                     {group.permissions.map((p) => {
                       const isChecked = selectedPermissions.includes(p.key);
+                      // Unchecking is always allowed; adding needs the permission yourself
+                      const locked = !isChecked && !isGrantable(p.key);
                       return (
                         <label
                           key={p.key}
-                          className="flex items-center gap-2.5 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 cursor-pointer text-xs transition-colors"
+                          title={locked ? "Your role doesn't have this permission" : undefined}
+                          className={`flex items-center gap-2.5 p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 text-xs transition-colors ${
+                            locked
+                              ? "opacity-40 cursor-not-allowed"
+                              : "hover:border-zinc-300 dark:hover:border-zinc-700 cursor-pointer"
+                          }`}
                         >
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={isChecked}
+                            disabled={locked}
                             onChange={() => togglePermission(p.key)}
-                            className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-950 focus:ring-0 cursor-pointer"
                           />
                           <span
                             className={

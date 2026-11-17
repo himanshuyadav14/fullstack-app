@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense } from "react";
 import PageLoader from "../components/common/PageLoader";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import PendingInvitations from "../components/invitations/PendingInvitations";
 import Navbar from "../components/layout/Navbar";
 import OrbitLogo from "../components/common/OrbitLogo";
 import CreateOrgModal from "../components/modals/CreateOrgModal";
@@ -15,8 +16,12 @@ import {
 } from "../services/socket";
 import { PENDING_INVITE_KEY } from "../utils/pendingInvite";
 
+// Pages that work without belonging to any workspace
+const ORG_FREE_PATHS = ["/profile", "/notifications"];
+
 const AppLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token } = useAuthStore();
   const { userOrgs, currentOrg, fetchMyOrgs, initialLoaded } = useOrgStore();
   const { fetchUnreadCount, addLiveNotification } = useNotificationStore();
@@ -78,7 +83,7 @@ const AppLayout = () => {
             <div className="w-8 h-8 border-2 border-zinc-900 dark:border-zinc-100 border-t-transparent rounded-full animate-spin mb-3"></div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Loading workspace...</p>
           </div>
-        ) : userOrgs.length === 0 ? (
+        ) : userOrgs.length === 0 && !ORG_FREE_PATHS.includes(location.pathname) ? (
           <div className="max-w-lg mx-auto my-16 text-center p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl">
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 rounded-2xl bg-zinc-950 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 flex items-center justify-center text-white shadow-md">
@@ -96,6 +101,14 @@ const AppLayout = () => {
             >
               Create First Workspace
             </button>
+            {/* Invited users can join an existing workspace instead */}
+            <PendingInvitations className="mt-6" />
+            <Link
+              to="/profile"
+              className="block mt-4 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+            >
+              Edit your profile
+            </Link>
           </div>
         ) : (
           // Local boundary so a lazily loaded page doesn't blank out the navbar
