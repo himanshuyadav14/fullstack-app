@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import validate from "../utils/validate";
 import { useAuthStore } from "../stores/authStore";
-import { useThemeStore } from "../stores/themeStore";
+import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
 
 const Signup = () => {
   const navigate = useNavigate();
   const { signup, verifyOtp, resendOtp, loading } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
 
   // "form" | "verify"
   const [step, setStep] = useState("form");
@@ -124,13 +123,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 relative">
       {/* Theme Toggle Button */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="absolute top-5 right-5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
-      >
-        {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-      </button>
+      <ThemeToggle className="absolute top-5 right-5" />
 
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8">
         {step === "form" ? (

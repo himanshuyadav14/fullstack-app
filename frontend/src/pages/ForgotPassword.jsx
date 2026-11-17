@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 import validate from "../utils/validate";
-import { useThemeStore } from "../stores/themeStore";
+import ThemeToggle from "../components/common/ThemeToggle";
 import OrbitLogo from "../components/common/OrbitLogo";
 
 const ForgotPassword = () => {
-  const { theme, toggleTheme } = useThemeStore();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,13 +45,7 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 relative">
       {/* Theme Toggle Button */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="absolute top-5 right-5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
-      >
-        {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-      </button>
+      <ThemeToggle className="absolute top-5 right-5" />
 
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8">
         <div className="text-center mb-6">

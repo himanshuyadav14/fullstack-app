@@ -1,16 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import OrbitLogo from "../common/OrbitLogo";
+import ThemeToggle from "../common/ThemeToggle";
 import { useAuthStore } from "../../stores/authStore";
 import { useOrgStore } from "../../stores/orgStore";
 import { useNotificationStore } from "../../stores/notificationStore";
-import { useThemeStore } from "../../stores/themeStore";
 
 const Navbar = ({ onOpenCreateOrg }) => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const { userOrgs, currentOrg, currentRole, setCurrentOrg, clearOrg } = useOrgStore();
   const { unreadCount } = useNotificationStore();
-  const { theme, toggleTheme } = useThemeStore();
 
   const getNavLinkClass = (path) => {
     const isActive = location.pathname === path;
@@ -101,14 +100,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
       {/* Right: User Profile, Theme Switcher & Logout */}
       <div className="flex items-center gap-3">
         {/* Theme Toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/80 text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
-          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {theme === "dark" ? "Light" : "Dark"}
-        </button>
+        <ThemeToggle />
 
         {/* User Badge */}
         <div className="text-right text-xs">
