@@ -33,12 +33,64 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
       return {
         success: true,
-        message: res.data.message || "Registration successful! Please check your email to verify.",
+        message: res.data.message || "Registration successful! Verification code sent to email.",
+        email: res.data.email || email,
       };
     } catch (err) {
       const message =
         err.response?.data?.message || "Registration failed. Please try again.";
       set({ loading: false, error: message });
+      return { success: false, message };
+    }
+  },
+
+  /**
+   * Verify 6-digit OTP
+   */
+  verifyOtp: async ({ email, otp }) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await api.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { email, otp });
+      const { token, user } = res.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          loading: false,
+          error: null,
+        });
+      }
+
+      return {
+        success: true,
+        message: res.data.message || "Email verified successfully!",
+        user,
+      };
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Invalid or expired verification code.";
+      set({ loading: false, error: message });
+      return { success: false, message };
+    }
+  },
+
+  /**
+   * Resend 6-digit OTP
+   */
+  resendOtp: async (email) => {
+    try {
+      const res = await api.post(ENDPOINTS.AUTH.RESEND_VERIFICATION, { email });
+      return {
+        success: true,
+        message: res.data.message || "New verification code sent to your email.",
+      };
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Failed to resend verification code.";
       return { success: false, message };
     }
   },

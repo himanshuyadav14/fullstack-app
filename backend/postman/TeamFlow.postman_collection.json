@@ -37,6 +37,10 @@
                   "        pm.environment.set('verificationToken', res.verificationToken);",
                   "        console.log('✅ verificationToken saved:', res.verificationToken);",
                   "    }",
+                  "    if (res.otp) {",
+                  "        pm.environment.set('otp', res.otp);",
+                  "        console.log('✅ OTP saved:', res.otp);",
+                  "    }",
                   "}"
                 ],
                 "type": "text/javascript"

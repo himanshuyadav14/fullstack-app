@@ -6,6 +6,7 @@ const Membership = require("../models/Membership");
 const { isValidEmail, isValidPassword } = require("../utils/validate");
 const {
   sendVerificationEmail,
+  sendVerificationOtpEmail,
   sendPasswordResetEmail,
 } = require("../services/emailService");
 
@@ -63,20 +64,31 @@ const signup = async (req, res) => {
     // 6. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 7. Generate email verification token
+    // 7. Generate 6-digit numeric OTP (expires in 10 minutes)
+    const rawOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailOtpHash = crypto
+      .createHash("sha256")
+      .update(rawOtp)
+      .digest("hex");
+    const emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Also generate legacy verification token for compatibility
     const rawVerificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenHash = crypto
       .createHash("sha256")
       .update(rawVerificationToken)
       .digest("hex");
-    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // 8. Create new user
+    // 8. Create new user with authProvider local
     const newUser = new User({
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
+      authProvider: "local",
       isEmailVerified: false,
+      emailOtpHash,
+      emailOtpExpiresAt,
       verificationTokenHash,
       verificationTokenExpiresAt,
       status: "active",
@@ -84,15 +96,15 @@ const signup = async (req, res) => {
 
     await newUser.save();
 
-    // 9. Send verification email via Gmail SMTP
-    const emailResult = await sendVerificationEmail({
+    // 9. Send 6-digit OTP verification email via Gmail SMTP
+    const emailResult = await sendVerificationOtpEmail({
       to: normalizedEmail,
       name: newUser.name,
-      verificationToken: rawVerificationToken,
+      otp: rawOtp,
     });
 
     if (!emailResult?.success) {
-      console.warn("⚠️ User registered, but verification email delivery failed.");
+      console.warn("⚠️ User registered, but verification OTP email delivery failed.");
     }
 
     // 10. Issue JWT session token
@@ -104,9 +116,11 @@ const signup = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "User registered successfully. Please verify your email.",
+      message: "User registered successfully. A 6-digit verification code has been sent to your email.",
       token,
-      verificationToken: rawVerificationToken, // Provided for easy Postman testing
+      email: newUser.email,
+      otp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
+      verificationToken: rawVerificationToken,
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -131,58 +145,93 @@ const signup = async (req, res) => {
 };
 
 /**
- * 2. POST /api/auth/verify-email
- * Verifies email address using verification token
+ * 2. POST /api/auth/verify-email (also accepts { email, otp } or { token })
+ * Verifies email address using 6-digit OTP or verification token
  */
 const verifyEmail = async (req, res) => {
   try {
-    const { token, email } = req.body;
+    const { token, email, otp } = req.body;
 
-    if (!token && !email) {
+    if (!otp && !token && !email) {
       return res.status(400).json({
         success: false,
-        message: "Verification token is required",
+        message: "Verification code (OTP) or token is required",
       });
     }
 
-    let query = {};
-    if (token && typeof token === "string") {
+    let user = null;
+
+    if (email && otp) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const otpHash = crypto
+        .createHash("sha256")
+        .update(String(otp).trim())
+        .digest("hex");
+
+      user = await User.findOne({
+        email: normalizedEmail,
+        emailOtpHash: otpHash,
+        emailOtpExpiresAt: { $gt: new Date() },
+      });
+    } else if (token && typeof token === "string") {
       const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
-      query = {
+      user = await User.findOne({
         verificationTokenHash: tokenHash,
         verificationTokenExpiresAt: { $gt: new Date() },
-      };
+      });
     } else if (email && process.env.NODE_ENV !== "production") {
-      // Dev shortcut for quick manual testing
-      query = { email: email.trim().toLowerCase() };
+      // Dev shortcut for quick local testing without email access
+      user = await User.findOne({ email: email.trim().toLowerCase() });
     }
-
-    const user = await User.findOne(query);
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: "Invalid or expired verification token",
+        message: "Invalid or expired verification code",
       });
     }
 
     if (user.isEmailVerified) {
+      // Already verified, return active session
+      const sessionToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+      );
+
       return res.status(200).json({
         success: true,
         message: "Email is already verified",
+        token: sessionToken,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          isEmailVerified: true,
+        },
       });
     }
 
     user.isEmailVerified = true;
+    user.emailOtpHash = undefined;
+    user.emailOtpExpiresAt = undefined;
     user.verificationTokenHash = undefined;
     user.verificationTokenExpiresAt = undefined;
     await user.save();
 
+    // Issue JWT token on verification so user is immediately authenticated
+    const sessionToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+    );
+
     return res.status(200).json({
       success: true,
-      message: "Email verified successfully! You can now accept workspace invitations.",
+      message: "Email verified successfully! Welcome to TeamFlow.",
+      token: sessionToken,
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
@@ -199,7 +248,7 @@ const verifyEmail = async (req, res) => {
 
 /**
  * 3. POST /api/auth/resend-verification
- * Resends a verification email
+ * Resends a 6-digit verification OTP email
  */
 const resendVerification = async (req, res) => {
   try {
@@ -212,7 +261,9 @@ const resendVerification = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail, status: "active" });
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -223,10 +274,19 @@ const resendVerification = async (req, res) => {
     if (user.isEmailVerified) {
       return res.status(400).json({
         success: false,
-        message: "Email is already verified",
+        message: "Email is already verified. Please log in.",
       });
     }
 
+    // Generate fresh 6-digit OTP
+    const rawOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.emailOtpHash = crypto
+      .createHash("sha256")
+      .update(rawOtp)
+      .digest("hex");
+    user.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Legacy verification token refresh
     const rawVerificationToken = crypto.randomBytes(32).toString("hex");
     user.verificationTokenHash = crypto
       .createHash("sha256")
@@ -235,15 +295,16 @@ const resendVerification = async (req, res) => {
     user.verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     await user.save();
 
-    await sendVerificationEmail({
+    await sendVerificationOtpEmail({
       to: user.email,
       name: user.name,
-      verificationToken: rawVerificationToken,
+      otp: rawOtp,
     });
 
     return res.status(200).json({
       success: true,
-      message: "Verification email resent successfully",
+      message: "A new 6-digit verification code has been sent to your email.",
+      otp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
       verificationToken: rawVerificationToken,
     });
   } catch (err) {
