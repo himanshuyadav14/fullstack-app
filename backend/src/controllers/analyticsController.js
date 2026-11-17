@@ -305,13 +305,54 @@ const getWorkloadAnalytics = async (req, res) => {
       },
       { $unwind: "$userInfo" },
       {
+        $lookup: {
+          from: "memberships",
+          let: { userId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$user", "$$userId"] },
+                    { $eq: ["$organization", orgId] },
+                  ],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "roles",
+                localField: "role",
+                foreignField: "_id",
+                as: "roleData",
+              },
+            },
+            { $unwind: { path: "$roleData", preserveNullAndEmptyArrays: true } },
+          ],
+          as: "membershipInfo",
+        },
+      },
+      {
         $project: {
           _id: 1,
+          user: {
+            _id: "$_id",
+            name: "$userInfo.name",
+            email: "$userInfo.email",
+            avatar: "$userInfo.avatar",
+          },
           name: "$userInfo.name",
           email: "$userInfo.email",
           avatar: "$userInfo.avatar",
+          role: {
+            $ifNull: [
+              { $arrayElemAt: ["$membershipInfo.roleData", 0] },
+              { name: "Member" },
+            ],
+          },
           totalAssigned: 1,
           activeTasks: 1,
+          pendingTasks: "$activeTasks",
           completedTasks: 1,
           overdueTasks: 1,
           urgentTasks: 1,

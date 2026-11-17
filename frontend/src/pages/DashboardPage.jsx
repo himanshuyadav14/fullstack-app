@@ -227,26 +227,34 @@ const DashboardPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
-                {workloadMetrics.map((w) => (
-                  <tr key={w.user._id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
-                    <td className="py-3 font-medium text-slate-800 dark:text-zinc-200">
-                      {w.user.name}
-                    </td>
-                    <td className="py-3 text-xs capitalize text-slate-500 dark:text-zinc-400">
-                      {w.role?.name || "Member"}
-                    </td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
-                        {w.pendingTasks}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400">
-                        {w.completedTasks}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {workloadMetrics.map((w, idx) => {
+                  const memberName = w.user?.name || w.name || "Unknown Member";
+                  const memberRole = w.role?.name || (typeof w.role === "string" ? w.role : "Member");
+                  const memberKey = w.user?._id || w._id || idx;
+                  const pendingCount = w.pendingTasks ?? w.activeTasks ?? 0;
+                  const completedCount = w.completedTasks ?? 0;
+
+                  return (
+                    <tr key={memberKey} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
+                      <td className="py-3 font-medium text-slate-800 dark:text-zinc-200">
+                        {memberName}
+                      </td>
+                      <td className="py-3 text-xs capitalize text-slate-500 dark:text-zinc-400">
+                        {memberRole}
+                      </td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400">
+                          {pendingCount}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-400">
+                          {completedCount}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
