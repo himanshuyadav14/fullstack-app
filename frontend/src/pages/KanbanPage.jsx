@@ -178,14 +178,50 @@ const KanbanPage = () => {
     };
   }, [selectedProjectId]);
 
-  // Move task status via API
+  // Move task status via API with optimistic update
   const handleMoveStatus = async (taskId, newStatus) => {
+    // 1. Optimistic UI update across columns
+    setTasks((prev) => {
+      let movedTask = null;
+      const newCols = {
+        todo: prev.todo.filter((t) => {
+          if (t._id === taskId) {
+            movedTask = { ...t, status: newStatus };
+            return false;
+          }
+          return true;
+        }),
+        in_progress: prev.in_progress.filter((t) => {
+          if (t._id === taskId) {
+            movedTask = { ...t, status: newStatus };
+            return false;
+          }
+          return true;
+        }),
+        done: prev.done.filter((t) => {
+          if (t._id === taskId) {
+            movedTask = { ...t, status: newStatus };
+            return false;
+          }
+          return true;
+        }),
+      };
+
+      if (movedTask && newCols[newStatus]) {
+        newCols[newStatus].unshift(movedTask);
+      }
+
+      return newCols;
+    });
+
+    // 2. Persist to API
     try {
       await api.put(ENDPOINTS.TASKS.UPDATE_STATUS(currentOrg._id, taskId), {
         status: newStatus,
       });
-      loadKanbanTasks(selectedProjectId);
     } catch (err) {
+      console.error("Failed to update status, rolling back:", err);
+      loadKanbanTasks(selectedProjectId);
       alert(err.response?.data?.message || "Failed to update status");
     }
   };
@@ -321,27 +357,35 @@ const KanbanPage = () => {
         <div className="flex gap-5 overflow-x-auto pb-4">
           <KanbanColumn
             title="To Do"
+            status="todo"
             dotColorClass="bg-slate-400 dark:bg-slate-500"
             tasks={tasks.todo}
             onMove={(id) => handleMoveStatus(id, "in_progress")}
             moveLabel="Start"
             onTaskClick={(t) => setActiveTask(t)}
+            onDropTask={handleMoveStatus}
           />
 
           <KanbanColumn
             title="In Progress"
+            status="in_progress"
             dotColorClass="bg-amber-500"
             tasks={tasks.in_progress}
             onMove={(id) => handleMoveStatus(id, "done")}
             moveLabel="Mark Done"
             onTaskClick={(t) => setActiveTask(t)}
+            onDropTask={handleMoveStatus}
           />
 
           <KanbanColumn
             title="Done"
+            status="done"
             dotColorClass="bg-green-500"
             tasks={tasks.done}
+            onMove={(id) => handleMoveStatus(id, "todo")}
+            moveLabel="Reopen"
             onTaskClick={(t) => setActiveTask(t)}
+            onDropTask={handleMoveStatus}
           />
         </div>
       )}

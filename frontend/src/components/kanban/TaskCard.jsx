@@ -1,12 +1,17 @@
+import { useState } from "react";
+
 /**
  * Reusable Task Card on Kanban Board (Tailwind CSS)
  * Features:
+ * - HTML5 Native Drag & Drop
  * - Assignee avatar / name
  * - Target / Due date indicator
- * - Attachments count
+ * - Attachments & Comments count
  * - Monochrome palette (no blue)
  */
 const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
+  const [isDragging, setIsDragging] = useState(false);
+
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case "urgent":
@@ -32,10 +37,28 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
       })
     : null;
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("taskId", task._id);
+    e.dataTransfer.setData("fromStatus", task.status);
+    e.dataTransfer.effectAllowed = "move";
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={() => onClick && onClick(task)}
-      className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs hover:border-zinc-900 dark:hover:border-zinc-100 transition-all cursor-pointer flex flex-col gap-2 group"
+      className={`p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs hover:border-zinc-900 dark:hover:border-zinc-100 transition-all cursor-grab active:cursor-grabbing flex flex-col gap-2 group select-none ${
+        isDragging
+          ? "opacity-35 scale-95 border-dashed border-zinc-400 dark:border-zinc-600"
+          : ""
+      }`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
