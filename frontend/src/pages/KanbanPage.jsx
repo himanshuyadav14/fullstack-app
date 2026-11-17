@@ -216,7 +216,7 @@ const KanbanPage = () => {
 
     // 2. Persist to API
     try {
-      await api.put(ENDPOINTS.TASKS.UPDATE_STATUS(currentOrg._id, taskId), {
+      await api.patch(ENDPOINTS.TASKS.UPDATE_STATUS(currentOrg._id, taskId), {
         status: newStatus,
       });
     } catch (err) {

@@ -28,8 +28,11 @@ router.use(requireMembership);
 router.get("/", requireOrgPermission("task:read"), getOrganizationTasks);
 router.get("/:taskId", requireOrgPermission("task:read"), getTaskById);
 router.patch("/:taskId", updateTask);
+router.put("/:taskId", updateTask);
 router.patch("/:taskId/status", updateTaskStatus);
+router.put("/:taskId/status", updateTaskStatus);
 router.patch("/:taskId/assign", assignTask);
+router.put("/:taskId/assign", assignTask);
 router.delete("/:taskId", deleteTask);
 
 // Task Attachments (Phase 9)
