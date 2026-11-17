@@ -6,6 +6,27 @@ const User = require("../models/User");
 const { createNotification } = require("../services/notificationService");
 
 /**
+ * 0. GET /api/organizations/:orgId/roles
+ * Lists all available roles within the organization
+ */
+const getOrganizationRoles = async (req, res) => {
+  try {
+    const roles = await Role.find({ organization: req.organization._id })
+      .select("name description isSystemRole permissions")
+      .sort({ isSystemRole: -1, name: 1 });
+
+    return res.status(200).json({
+      success: true,
+      count: roles.length,
+      data: roles,
+    });
+  } catch (error) {
+    console.error("getOrganizationRoles Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+/**
  * 1. GET /api/organizations/:orgId/members
  * Lists all members of the organization with pagination and filters
  */
@@ -404,6 +425,7 @@ const transferOwnership = async (req, res) => {
 };
 
 module.exports = {
+  getOrganizationRoles,
   getOrganizationMembers,
   updateMemberRole,
   removeMember,

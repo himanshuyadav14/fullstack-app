@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
 import api from "../../services/api";
@@ -6,14 +6,43 @@ import { ENDPOINTS } from "../../services/urls";
 
 const InviteMemberModal = ({ orgId, onClose, onMemberInvited }) => {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("member");
+  const [roleId, setRoleId] = useState("");
+  const [availableRoles, setAvailableRoles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    if (!orgId) return;
+
+    const fetchRoles = async () => {
+      setLoadingRoles(true);
+      try {
+        const res = await api.get(ENDPOINTS.ORGANIZATIONS.ROLES(orgId));
+        const roles = res.data.data || [];
+        // Filter out owner role (cannot invite someone as owner)
+        const assignable = roles.filter((r) => r.name?.toLowerCase() !== "owner");
+        setAvailableRoles(assignable);
+
+        // Default to 'member' role
+        const defaultRole = assignable.find((r) => r.name?.toLowerCase() === "member") || assignable[0];
+        if (defaultRole) {
+          setRoleId(defaultRole._id);
+        }
+      } catch (err) {
+        console.error("Failed to load roles:", err);
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    fetchRoles();
+  }, [orgId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !roleId) return;
 
     setLoading(true);
     setError("");
@@ -21,7 +50,7 @@ const InviteMemberModal = ({ orgId, onClose, onMemberInvited }) => {
     try {
       const res = await api.post(ENDPOINTS.ORGANIZATIONS.INVITATIONS(orgId), {
         email: email.trim(),
-        role,
+        roleId,
       });
 
       setSuccess(res.data.message || "Invitation sent successfully via email!");
@@ -33,6 +62,13 @@ const InviteMemberModal = ({ orgId, onClose, onMemberInvited }) => {
       setLoading(false);
     }
   };
+
+  const roleOptions = availableRoles.map((r) => ({
+    value: r._id,
+    label: `${r.name.charAt(0).toUpperCase() + r.name.slice(1)} ${
+      r.description ? `— ${r.description}` : ""
+    }`,
+  }));
 
   return (
     <Modal title="Invite Member to Workspace" onClose={onClose}>
@@ -65,18 +101,16 @@ const InviteMemberModal = ({ orgId, onClose, onMemberInvited }) => {
 
         <CustomSelect
           label="Initial Workspace Role"
-          value={role}
-          onChange={(val) => setRole(val)}
-          options={[
-            { value: "member", label: "Member (Can create tasks & comments)" },
-            { value: "admin", label: "Admin (Can manage projects, teams & members)" },
-            { value: "viewer", label: "Viewer (Read-only access)" },
-          ]}
+          value={roleId}
+          disabled={loadingRoles}
+          onChange={(val) => setRoleId(val)}
+          options={roleOptions}
+          placeholder={loadingRoles ? "Loading roles..." : "Select role"}
         />
 
         <button
           type="submit"
-          disabled={loading || !email.trim()}
+          disabled={loading || loadingRoles || !email.trim() || !roleId}
           className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
         >
           {loading ? "Sending Invitation..." : "Send Invitation"}

@@ -28,6 +28,7 @@ export const ENDPOINTS = {
     MY: "/organizations/my",
     CREATE: "/organizations",
     GET_BY_ID: (orgId) => `/organizations/${orgId}`,
+    ROLES: (orgId) => `/organizations/${orgId}/roles`,
     MEMBERS: (orgId) => `/organizations/${orgId}/members`,
     UPDATE_MEMBER_ROLE: (orgId, memberId) =>
       `/organizations/${orgId}/members/${memberId}/role`,
