@@ -1,5 +1,10 @@
 /**
  * Reusable Task Card on Kanban Board (Tailwind CSS)
+ * Features:
+ * - Assignee avatar / name
+ * - Target / Due date indicator
+ * - Attachments count
+ * - Monochrome palette (no blue)
  */
 const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
   const getPriorityBadge = (priority) => {
@@ -14,6 +19,18 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
         return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400";
     }
   };
+
+  const isOverdue =
+    task.dueDate &&
+    task.status !== "done" &&
+    new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0));
+
+  const formattedDueDate = task.dueDate
+    ? new Date(task.dueDate).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      })
+    : null;
 
   return (
     <div
@@ -38,15 +55,51 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
       </div>
 
       {task.description && (
-        <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+        <div className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">
           {task.description}
         </div>
       )}
 
+      {/* Badges Row: Target Date & Attachments */}
+      {(formattedDueDate || task.attachments?.length > 0) && (
+        <div className="flex items-center gap-2 pt-0.5">
+          {formattedDueDate && (
+            <span
+              className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                isOverdue
+                  ? "bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900"
+                  : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+              }`}
+            >
+              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>{formattedDueDate}</span>
+            </span>
+          )}
+
+          {task.attachments?.length > 0 && (
+            <span className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              <span>{task.attachments.length}</span>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Footer: Assignee & Action */}
       <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
-        <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500 inline-block" />
-          {task.assignee?.name || "Unassigned"}
+        <span className="flex items-center gap-1.5 truncate max-w-[150px]">
+          {task.assignee?.name ? (
+            <span className="w-4 h-4 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 text-[10px] font-bold flex items-center justify-center shrink-0">
+              {task.assignee.name.charAt(0).toUpperCase()}
+            </span>
+          ) : (
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500 inline-block shrink-0" />
+          )}
+          <span className="truncate">{task.assignee?.name || "Unassigned"}</span>
         </span>
 
         {onMove && moveLabel && (
@@ -56,7 +109,7 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
               e.stopPropagation();
               onMove(task._id);
             }}
-            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:underline cursor-pointer shrink-0"
           >
             {moveLabel}
           </button>

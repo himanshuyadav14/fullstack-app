@@ -27,6 +27,10 @@ const TaskDetailModal = ({
     task?.assignee?._id || task?.assignee || "",
   );
   const [assigning, setAssigning] = useState(false);
+  const [dueDate, setDueDate] = useState(
+    task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "",
+  );
+  const [updatingDueDate, setUpdatingDueDate] = useState(false);
   const [deletingTask, setDeletingTask] = useState(false);
 
   useEffect(() => {
@@ -129,6 +133,22 @@ const TaskDetailModal = ({
     }
   };
 
+  const handleDueDateChange = async (e) => {
+    const val = e.target.value;
+    setDueDate(val);
+    setUpdatingDueDate(true);
+    try {
+      const res = await api.patch(ENDPOINTS.TASKS.UPDATE(orgId, task._id), {
+        dueDate: val ? new Date(val).toISOString() : null,
+      });
+      if (onTaskUpdated) onTaskUpdated(res.data.data);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update target date");
+    } finally {
+      setUpdatingDueDate(false);
+    }
+  };
+
   const handleDeleteTask = async () => {
     if (!window.confirm(`Are you sure you want to delete task ${task.taskKey}?`)) return;
 
@@ -161,25 +181,42 @@ const TaskDetailModal = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Assignee:
-            </span>
-            <CustomSelect
-              size="sm"
-              value={currentAssignee}
-              disabled={assigning}
-              onChange={(val) => handleAssignChange({ target: { value: val } })}
-              options={[
-                { value: "", label: "Unassigned" },
-                ...members.map((m) => ({
-                  value: m.user?._id,
-                  label: m.user?.name || "Unknown",
-                  avatar: m.user?.name?.charAt(0) || "U",
-                })),
-              ]}
-              className="min-w-[150px]"
-            />
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Target Date Picker */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                Target:
+              </span>
+              <input
+                type="date"
+                value={dueDate}
+                disabled={updatingDueDate}
+                onChange={handleDueDateChange}
+                className="text-xs px-2.5 py-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 cursor-pointer"
+              />
+            </div>
+
+            {/* Assignee */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                Assignee:
+              </span>
+              <CustomSelect
+                size="sm"
+                value={currentAssignee}
+                disabled={assigning}
+                onChange={(val) => handleAssignChange({ target: { value: val } })}
+                options={[
+                  { value: "", label: "Unassigned" },
+                  ...members.map((m) => ({
+                    value: m.user?._id,
+                    label: m.user?.name || "Unknown",
+                    avatar: m.user?.name?.charAt(0) || "U",
+                  })),
+                ]}
+                className="min-w-[150px]"
+              />
+            </div>
           </div>
         </div>
 
@@ -199,8 +236,11 @@ const TaskDetailModal = ({
             <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
               Attachments ({attachments.length})
             </div>
-            <label className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-              {uploadingFile ? "Uploading..." : "+ Upload File"}
+            <label className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:underline cursor-pointer flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{uploadingFile ? "Uploading..." : "Upload File"}</span>
               <input
                 type="file"
                 disabled={uploadingFile}
