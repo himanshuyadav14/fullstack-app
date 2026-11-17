@@ -26,9 +26,11 @@ const Navbar = ({ onOpenCreateOrg }) => {
       <div className="flex items-center gap-6">
         <Link
           to="/"
-          className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-zinc-900 dark:text-white"
+          className="flex items-center gap-2.5 text-base font-bold tracking-tight text-zinc-900 dark:text-white"
         >
-          <OrbitLogo className="w-6 h-6" />
+          <div className="w-7 h-7 rounded-lg bg-zinc-950 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 flex items-center justify-center text-zinc-100 shadow-2xs">
+            <OrbitLogo className="w-4 h-4" />
+          </div>
           <span className="font-bold tracking-tight">
             OrbitHQ
           </span>

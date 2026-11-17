@@ -44,8 +44,10 @@ const Login = () => {
 
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8">
         <div className="text-center mb-6">
-          <div className="flex justify-center mb-3">
-            <OrbitLogo className="w-12 h-12" />
+          <div className="flex justify-center mb-4">
+            <div className="w-13 h-13 rounded-2xl bg-zinc-950 dark:bg-zinc-800 border border-zinc-800 dark:border-zinc-700 flex items-center justify-center text-white shadow-md">
+              <OrbitLogo className="w-7 h-7" />
+            </div>
           </div>
           <h2 className="text-2xl font-bold tracking-tight">Welcome Back</h2>
           <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
