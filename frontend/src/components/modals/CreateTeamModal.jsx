@@ -49,7 +49,7 @@ const CreateTeamModal = ({ orgId, onClose, onTeamCreated }) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Backend Engineers or Product Design"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
           />
         </div>
 
@@ -62,7 +62,7 @@ const CreateTeamModal = ({ orgId, onClose, onTeamCreated }) => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Team mandate, focus area, responsibilities..."
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
           />
         </div>
 

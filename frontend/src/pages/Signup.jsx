@@ -160,10 +160,10 @@ const Signup = () => {
                     setErrors((prev) => ({ ...prev, name: "" }));
                   }}
                   placeholder="Alex Johnson"
-                  className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                     errors.name
                       ? "border-red-500 dark:border-red-500"
-                      : "border-slate-300 dark:border-zinc-700"
+                      : "border-zinc-300 dark:border-zinc-700"
                   }`}
                 />
                 {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
@@ -181,10 +181,10 @@ const Signup = () => {
                     setErrors((prev) => ({ ...prev, email: "" }));
                   }}
                   placeholder="alex@company.com"
-                  className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white dark:bg-zinc-800/80 transition-colors focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 ${
                     errors.email
                       ? "border-red-500 dark:border-red-500"
-                      : "border-slate-300 dark:border-zinc-700"
+                      : "border-zinc-300 dark:border-zinc-700"
                   }`}
                 />
                 {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}

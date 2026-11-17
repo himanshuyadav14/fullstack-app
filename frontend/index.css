@@ -11,4 +11,36 @@
   button, [role="button"], select {
     cursor: pointer;
   }
+
+  /* Browser Autofill Overrides (Chrome, Safari, Edge) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    transition: background-color 5000000s ease-in-out 0s, color 5000000s ease-in-out 0s;
+  }
+
+  /* Dark mode autofill fix: use inset box-shadow to match dark input background */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #27272a inset !important; /* zinc-800 matching dark:bg-zinc-800 */
+    -webkit-text-fill-color: #f4f4f5 !important; /* zinc-100 */
+    caret-color: #f4f4f5 !important;
+    border-color: #3f3f46 !important; /* zinc-700 */
+  }
+
+  /* Light mode autofill fix: use inset box-shadow to match white input background */
+  html:not(.dark) input:-webkit-autofill,
+  html:not(.dark) input:-webkit-autofill:hover,
+  html:not(.dark) input:-webkit-autofill:focus,
+  html:not(.dark) input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #09090b !important;
+    caret-color: #09090b !important;
+    border-color: #e4e4e7 !important; /* zinc-200 */
+  }
 }

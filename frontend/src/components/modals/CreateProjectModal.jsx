@@ -63,7 +63,7 @@ const CreateProjectModal = ({ orgId, onClose, onProjectCreated }) => {
               }
             }}
             placeholder="e.g. Website Redesign"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
           />
         </div>
 
@@ -78,7 +78,7 @@ const CreateProjectModal = ({ orgId, onClose, onProjectCreated }) => {
             value={key}
             onChange={(e) => setKey(e.target.value.toUpperCase())}
             placeholder="TF"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-mono uppercase focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
           />
         </div>
 
@@ -91,7 +91,7 @@ const CreateProjectModal = ({ orgId, onClose, onProjectCreated }) => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Scope, objectives, and goals..."
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
           />
         </div>
 
