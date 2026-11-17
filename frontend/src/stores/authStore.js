@@ -163,7 +163,7 @@ export const useAuthStore = create((set, get) => ({
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("currentOrg");
+    // Preserve selectedOrgId and currentOrg across sessions so the user returns to their selected workspace
     set({
       user: null,
       token: null,

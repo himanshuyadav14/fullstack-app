@@ -52,7 +52,9 @@ export const useOrgStore = create((set, get) => ({
 
       // Check if user previously selected an organization
       const savedOrgId =
-        localStorage.getItem("selectedOrgId") || get().currentOrg?._id;
+        localStorage.getItem("selectedOrgId") ||
+        get().currentOrg?._id ||
+        getSavedOrg()?._id;
 
       let matchedOrg = null;
       if (savedOrgId) {
@@ -121,11 +123,11 @@ export const useOrgStore = create((set, get) => ({
   },
 
   /**
-   * Reset store (used on logout)
+   * Reset in-memory store (used on logout).
+   * Note: We deliberately preserve selectedOrgId and currentOrg in localStorage
+   * so that when the user logs back in, their selected workspace is remembered.
    */
   clearOrg: () => {
-    localStorage.removeItem("currentOrg");
-    localStorage.removeItem("selectedOrgId");
     set({
       userOrgs: [],
       currentOrg: null,
