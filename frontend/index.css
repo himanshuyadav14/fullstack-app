@@ -7,4 +7,8 @@
     @apply antialiased min-h-screen bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+
+  button, [role="button"], select {
+    cursor: pointer;
+  }
 }

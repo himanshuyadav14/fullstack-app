@@ -44,7 +44,7 @@ const Login = () => {
       <button
         type="button"
         onClick={toggleTheme}
-        className="absolute top-5 right-5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+        className="absolute top-5 right-5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
       >
         {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
       </button>
