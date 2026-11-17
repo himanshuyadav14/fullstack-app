@@ -23,12 +23,12 @@ const sendInvitationEmail = async ({
     const acceptUrl = `${process.env.CLIENT_URL}/${invitationToken}/accept`;
 
     const mailOptions = {
-      from: `"TeamFlow" <${process.env.EMAIL_USER}>`,
+      from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
       to: to,
-      subject: `${inviterName} has invited you to join ${organizationName} on TeamFlow`,
+      subject: `${inviterName} has invited you to join ${organizationName} on OrbitHQ`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #0f172a; margin-top: 0;">You're Invited to TeamFlow!</h2>
+          <h2 style="color: #0f172a; margin-top: 0;">You're Invited to OrbitHQ!</h2>
           <p style="color: #334155; font-size: 16px; line-height: 1.5;">
             Hello, <br /><br />
             <strong>${inviterName}</strong> has invited you to join the <strong>${organizationName}</strong> workspace as a <strong>${roleName}</strong>.
@@ -71,12 +71,12 @@ const sendVerificationEmail = async ({ to, name, verificationToken }) => {
     const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
-      from: `"TeamFlow" <${process.env.EMAIL_USER}>`,
+      from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
       to: to,
-      subject: `Verify your email for TeamFlow`,
+      subject: `Verify your email for OrbitHQ`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #0f172a; margin-top: 0;">Welcome to TeamFlow, ${name}!</h2>
+          <h2 style="color: #0f172a; margin-top: 0;">Welcome to OrbitHQ, ${name}!</h2>
           <p style="color: #334155; font-size: 16px; line-height: 1.5;">
             Please verify your email address to activate your account and access workspace invitations.
           </p>
@@ -114,15 +114,15 @@ const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
     const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
 
     const mailOptions = {
-      from: `"TeamFlow" <${process.env.EMAIL_USER}>`,
+      from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
       to: to,
-      subject: `Reset your TeamFlow Password`,
+      subject: `Reset your OrbitHQ Password`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
           <h2 style="color: #0f172a; margin-top: 0;">Password Reset Request</h2>
           <p style="color: #334155; font-size: 16px; line-height: 1.5;">
             Hello ${name || "there"},<br /><br />
-            We received a request to reset the password for your TeamFlow account. Click the button below to choose a new password:
+            We received a request to reset the password for your OrbitHQ account. Click the button below to choose a new password:
           </p>
           <div style="margin: 28px 0;">
             <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
@@ -159,15 +159,15 @@ const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
 const sendVerificationOtpEmail = async ({ to, name, otp }) => {
   try {
     const mailOptions = {
-      from: `"TeamFlow" <${process.env.EMAIL_USER}>`,
+      from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
       to: to,
-      subject: `${otp} is your TeamFlow verification code`,
+      subject: `${otp} is your OrbitHQ verification code`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="font-size: 32px; margin-bottom: 8px;">⚡</div>
+            <div style="font-size: 32px; margin-bottom: 8px;">🪐</div>
             <h2 style="color: #0f172a; margin: 0; font-size: 22px;">Confirm Your Email</h2>
-            <p style="color: #64748b; font-size: 14px; margin-top: 6px;">Welcome to TeamFlow, ${name || "there"}!</p>
+            <p style="color: #64748b; font-size: 14px; margin-top: 6px;">Welcome to OrbitHQ, ${name || "there"}!</p>
           </div>
           
           <p style="color: #334155; font-size: 14px; line-height: 1.6; text-align: center;">

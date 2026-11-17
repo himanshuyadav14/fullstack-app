@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import validate from "../utils/validate";
 import { useAuthStore } from "../stores/authStore";
 import { useThemeStore } from "../stores/themeStore";
+import OrbitLogo from "../components/common/OrbitLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -50,12 +51,12 @@ const Login = () => {
 
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-2xl mb-3">
-            ⚡
+          <div className="flex justify-center mb-3">
+            <OrbitLogo className="w-12 h-12" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight">Welcome Back</h2>
           <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
-            Sign in to access your TeamFlow workspace
+            Sign in to access your OrbitHQ workspace
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "TeamFlow SaaS API",
-    "description": "Comprehensive Postman collection for TeamFlow multi-tenant project management backend with automatic token, orgId, and invitation handling.",
+    "name": "OrbitHQ SaaS API",
+    "description": "Comprehensive Postman collection for OrbitHQ multi-tenant project management backend with automatic token, orgId, and invitation handling.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

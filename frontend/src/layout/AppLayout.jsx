@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
+import OrbitLogo from "../components/common/OrbitLogo";
 import CreateOrgModal from "../components/modals/CreateOrgModal";
 import { useAuthStore } from "../stores/authStore";
 import { useOrgStore } from "../stores/orgStore";
@@ -48,8 +49,10 @@ const AppLayout = () => {
         {/* If user has no workspaces */}
         {!orgLoading && userOrgs.length === 0 ? (
           <div className="max-w-lg mx-auto my-16 text-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl">
-            <div className="text-4xl mb-3">🏢</div>
-            <h2 className="text-xl font-bold mb-2">Welcome to TeamFlow!</h2>
+            <div className="flex justify-center mb-3">
+              <OrbitLogo className="w-12 h-12" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Welcome to OrbitHQ!</h2>
             <p className="text-sm text-slate-500 dark:text-zinc-400 mb-6 leading-relaxed">
               To start creating projects, managing Kanban tasks, and collaborating with your team, please create your first workspace.
             </p>

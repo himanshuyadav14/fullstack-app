@@ -228,7 +228,7 @@ const verifyEmail = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Email verified successfully! Welcome to TeamFlow.",
+      message: "Email verified successfully! Welcome to OrbitHQ.",
       token: sessionToken,
       user: {
         _id: user._id,

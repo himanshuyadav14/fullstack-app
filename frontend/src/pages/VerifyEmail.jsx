@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useThemeStore } from "../stores/themeStore";
+import OrbitLogo from "../components/common/OrbitLogo";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -95,10 +96,10 @@ const VerifyEmail = () => {
 
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-2xl mb-3">
-            ✉️
+          <div className="flex justify-center mb-3">
+            <OrbitLogo className="w-12 h-12" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">Verify Your Email</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Confirm Your Email</h2>
           <p className="text-sm text-slate-500 dark:text-zinc-400 mt-1">
             We sent a 6-digit verification code to
           </p>

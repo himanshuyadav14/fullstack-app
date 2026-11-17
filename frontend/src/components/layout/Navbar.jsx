@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import OrbitLogo from "../common/OrbitLogo";
 import { useAuthStore } from "../../stores/authStore";
 import { useOrgStore } from "../../stores/orgStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -26,10 +27,12 @@ const Navbar = ({ onOpenCreateOrg }) => {
       <div className="flex items-center gap-6">
         <Link
           to="/"
-          className="flex items-center gap-2 text-lg font-bold tracking-tight text-blue-600 dark:text-blue-500"
+          className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-slate-900 dark:text-white"
         >
-          <span>⚡</span>
-          <span>TeamFlow</span>
+          <OrbitLogo className="w-6 h-6" />
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+            OrbitHQ
+          </span>
         </Link>
 
         {/* Workspace Switcher */}
