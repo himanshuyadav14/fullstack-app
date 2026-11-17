@@ -32,40 +32,7 @@ const initSocket = (httpServer) => {
     // 1. Auto-join personal user room for direct alerts & notifications
     socket.join(`user:${userId}`);
 
-    // 2. Join Organization Room (Tenant isolation check)
-    socket.on("join:org", async (orgId, callback) => {
-      try {
-        if (!orgId || !mongoose.isValidObjectId(orgId)) {
-          if (callback) callback({ success: false, message: "Invalid organization ID" });
-          return;
-        }
-
-        const isMember = await Membership.exists({
-          user: userId,
-          organization: orgId,
-          status: "active",
-        });
-
-        if (!isMember) {
-          if (callback) callback({ success: false, message: "Access denied to organization" });
-          return;
-        }
-
-        socket.join(`org:${orgId}`);
-        if (callback) callback({ success: true, message: `Joined organization room org:${orgId}` });
-      } catch (err) {
-        if (callback) callback({ success: false, message: "Failed to join organization room" });
-      }
-    });
-
-    // 3. Leave Organization Room
-    socket.on("leave:org", (orgId) => {
-      if (orgId) {
-        socket.leave(`org:${orgId}`);
-      }
-    });
-
-    // 4. Join Project Room (for real-time Kanban updates)
+    // 2. Join Project Room (for real-time Kanban updates)
     socket.on("join:project", async (projectId, callback) => {
       try {
         if (!projectId || !mongoose.isValidObjectId(projectId)) {
@@ -97,14 +64,14 @@ const initSocket = (httpServer) => {
       }
     });
 
-    // 5. Leave Project Room
+    // 3. Leave Project Room
     socket.on("leave:project", (projectId) => {
       if (projectId) {
         socket.leave(`project:${projectId}`);
       }
     });
 
-    // 6. Join Task Room (for live comments & discussions)
+    // 4. Join Task Room (for live comments & discussions)
     socket.on("join:task", async (taskId, callback) => {
       try {
         if (!taskId || !mongoose.isValidObjectId(taskId)) {
@@ -136,14 +103,14 @@ const initSocket = (httpServer) => {
       }
     });
 
-    // 7. Leave Task Room
+    // 5. Leave Task Room
     socket.on("leave:task", (taskId) => {
       if (taskId) {
         socket.leave(`task:${taskId}`);
       }
     });
 
-    // 8. Collaborative Typing Indicator for Task Comments
+    // 6. Collaborative Typing Indicator for Task Comments
     socket.on("task:typing", ({ taskId, isTyping }) => {
       if (taskId) {
         socket.to(`task:${taskId}`).emit("task:user_typing", {
@@ -165,13 +132,6 @@ const initSocket = (httpServer) => {
 };
 
 /**
- * Returns the active Socket.IO server instance
- */
-const getIO = () => {
-  return io;
-};
-
-/**
  * Emit event to a specific user's private room
  * @param {string|ObjectId} userId
  * @param {string} event
@@ -180,17 +140,6 @@ const getIO = () => {
 const emitToUser = (userId, event, data) => {
   if (!io || !userId) return;
   io.to(`user:${userId.toString()}`).emit(event, data);
-};
-
-/**
- * Emit event to an entire organization room
- * @param {string|ObjectId} orgId
- * @param {string} event
- * @param {Object} data
- */
-const emitToOrg = (orgId, event, data) => {
-  if (!io || !orgId) return;
-  io.to(`org:${orgId.toString()}`).emit(event, data);
 };
 
 /**
@@ -217,9 +166,7 @@ const emitToTask = (taskId, event, data) => {
 
 module.exports = {
   initSocket,
-  getIO,
   emitToUser,
-  emitToOrg,
   emitToProject,
   emitToTask,
 };

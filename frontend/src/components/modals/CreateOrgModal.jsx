@@ -97,7 +97,7 @@ const CreateOrgModal = ({ onClose }) => {
         setError(msg);
         toast.error(msg);
       }
-    } catch (err) {
+    } catch {
       const msg = "Something went wrong while creating workspace.";
       setError(msg);
       toast.error(msg);

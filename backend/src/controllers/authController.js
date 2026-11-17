@@ -5,14 +5,16 @@ const User = require("../models/User");
 const Membership = require("../models/Membership");
 const { isValidEmail, isValidPassword } = require("../utils/validate");
 const {
-  sendVerificationEmail,
   sendVerificationOtpEmail,
   sendPasswordResetEmail,
 } = require("../services/emailService");
 
+// 6-digit OTP from a cryptographically secure source (Math.random is predictable)
+const generateOtp = () => crypto.randomInt(100000, 1000000).toString();
+
 /**
  * 1. POST /api/auth/signup
- * Registers a new user account, creates verification token, and sends verification email
+ * Registers a new user account and emails a 6-digit verification code
  */
 const signup = async (req, res) => {
   try {
@@ -65,20 +67,12 @@ const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 7. Generate 6-digit numeric OTP (expires in 10 minutes)
-    const rawOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const rawOtp = generateOtp();
     const emailOtpHash = crypto
       .createHash("sha256")
       .update(rawOtp)
       .digest("hex");
     const emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Also generate legacy verification token for compatibility
-    const rawVerificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenHash = crypto
-      .createHash("sha256")
-      .update(rawVerificationToken)
-      .digest("hex");
-    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // 8. Create new user with authProvider local
     const newUser = new User({
@@ -89,8 +83,6 @@ const signup = async (req, res) => {
       isEmailVerified: false,
       emailOtpHash,
       emailOtpExpiresAt,
-      verificationTokenHash,
-      verificationTokenExpiresAt,
       status: "active",
     });
 
@@ -139,44 +131,30 @@ const signup = async (req, res) => {
 };
 
 /**
- * 2. POST /api/auth/verify-email (also accepts { email, otp } or { token })
- * Verifies email address using 6-digit OTP or verification token
+ * 2. POST /api/auth/verify-email   Body: { email, otp }
+ * Verifies email address using the 6-digit OTP
  */
 const verifyEmail = async (req, res) => {
   try {
-    const { token, email, otp } = req.body;
+    const { email, otp } = req.body;
 
-    const hasOtpPair = typeof email === "string" && email.trim() && otp;
-    const hasToken = typeof token === "string" && token.trim();
-
-    if (!hasOtpPair && !hasToken) {
+    if (typeof email !== "string" || !email.trim() || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Email with verification code (OTP), or a verification token, is required",
+        message: "Email and verification code (OTP) are required",
       });
     }
 
-    let user = null;
+    const otpHash = crypto
+      .createHash("sha256")
+      .update(String(otp).trim())
+      .digest("hex");
 
-    if (hasOtpPair) {
-      const normalizedEmail = email.trim().toLowerCase();
-      const otpHash = crypto
-        .createHash("sha256")
-        .update(String(otp).trim())
-        .digest("hex");
-
-      user = await User.findOne({
-        email: normalizedEmail,
-        emailOtpHash: otpHash,
-        emailOtpExpiresAt: { $gt: new Date() },
-      });
-    } else {
-      const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
-      user = await User.findOne({
-        verificationTokenHash: tokenHash,
-        verificationTokenExpiresAt: { $gt: new Date() },
-      });
-    }
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      emailOtpHash: otpHash,
+      emailOtpExpiresAt: { $gt: new Date() },
+    });
 
     if (!user) {
       return res.status(400).json({
@@ -210,8 +188,6 @@ const verifyEmail = async (req, res) => {
     user.isEmailVerified = true;
     user.emailOtpHash = undefined;
     user.emailOtpExpiresAt = undefined;
-    user.verificationTokenHash = undefined;
-    user.verificationTokenExpiresAt = undefined;
     await user.save();
 
     // Issue JWT token on verification so user is immediately authenticated
@@ -248,7 +224,7 @@ const verifyEmail = async (req, res) => {
  */
 const resendVerification = async (req, res) => {
   try {
-    const email = req.body.email || (req.user ? (await User.findById(req.user.id))?.email : null);
+    const { email } = req.body;
 
     if (!email || !isValidEmail(email)) {
       return res.status(400).json({
@@ -275,20 +251,12 @@ const resendVerification = async (req, res) => {
     }
 
     // Generate fresh 6-digit OTP
-    const rawOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const rawOtp = generateOtp();
     user.emailOtpHash = crypto
       .createHash("sha256")
       .update(rawOtp)
       .digest("hex");
     user.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Legacy verification token refresh
-    const rawVerificationToken = crypto.randomBytes(32).toString("hex");
-    user.verificationTokenHash = crypto
-      .createHash("sha256")
-      .update(rawVerificationToken)
-      .digest("hex");
-    user.verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     await user.save();
 
     await sendVerificationOtpEmail({

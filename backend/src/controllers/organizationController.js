@@ -152,7 +152,6 @@ const createMyOrganization = async (req, res) => {
         description: "Organization Administrator",
         isSystemRole: true,
         permissions: [
-          PERMISSIONS.USER_READ,
 
           PERMISSIONS.MEMBER_READ,
           PERMISSIONS.MEMBER_UPDATE,

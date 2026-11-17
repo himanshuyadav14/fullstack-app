@@ -272,7 +272,7 @@ const TaskDetailModal = ({
     setAssigning(true);
 
     try {
-      const res = await api.put(ENDPOINTS.TASKS.ASSIGN(orgId, task._id), {
+      const res = await api.patch(ENDPOINTS.TASKS.ASSIGN(orgId, task._id), {
         assigneeId: newUserId || null,
       });
       if (onTaskUpdated) onTaskUpdated(res.data.data);

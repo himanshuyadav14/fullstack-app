@@ -261,8 +261,6 @@ const CreateRoleModal = ({
               const allChecked = groupKeys.every((k) =>
                 selectedPermissions.includes(k)
               );
-              const someChecked =
-                !allChecked && groupKeys.some((k) => selectedPermissions.includes(k));
 
               return (
                 <div

@@ -9,7 +9,7 @@ const getInitialTheme = () => {
         ? "light"
         : "dark";
     }
-  } catch (e) {
+  } catch {
     // localStorage might be unavailable
   }
   return "dark";
@@ -35,14 +35,14 @@ export const useThemeStore = create((set, get) => ({
     const nextTheme = get().theme === "dark" ? "light" : "dark";
     try {
       localStorage.setItem("teamflow_theme", nextTheme);
-    } catch (e) {}
+    } catch {}
     applyTheme(nextTheme);
     set({ theme: nextTheme });
   },
   setTheme: (theme) => {
     try {
       localStorage.setItem("teamflow_theme", theme);
-    } catch (e) {}
+    } catch {}
     applyTheme(theme);
     set({ theme });
   },

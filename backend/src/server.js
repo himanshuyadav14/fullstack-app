@@ -12,7 +12,6 @@ const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 // Routes Import
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
-const roleRoutes = require("./routes/roleRoutes");
 const organizationRoutes = require("./routes/organizationRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -40,7 +39,6 @@ app.get("/health", (req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/roles", roleRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/notifications", notificationRoutes);

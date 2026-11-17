@@ -20,7 +20,6 @@ export const ENDPOINTS = {
   USERS: {
     PROFILE: "/users/profile",
     AVATAR: "/users/profile/avatar",
-    GET_BY_ID: (userId) => `/users/${userId}`,
   },
 
   // 3. Organizations & Members

@@ -8,7 +8,6 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const emailFromUrl = searchParams.get("email") || "";
-  const tokenFromUrl = searchParams.get("token") || "";
 
   const { verifyOtp, resendOtp, loading } = useAuthStore();
 
@@ -18,21 +17,6 @@ const VerifyEmail = () => {
   const [resendMessage, setResendMessage] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
-
-  // If a legacy link with ?token= is provided, auto-verify
-  useEffect(() => {
-    if (tokenFromUrl) {
-      const autoVerify = async () => {
-        const res = await verifyOtp({ token: tokenFromUrl });
-        if (res.success) {
-          navigate("/");
-        } else {
-          setError(res.message);
-        }
-      };
-      autoVerify();
-    }
-  }, [tokenFromUrl]);
 
   // Resend countdown timer
   useEffect(() => {

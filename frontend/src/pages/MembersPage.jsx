@@ -19,7 +19,6 @@ const MembersPage = () => {
   const [availableRoles, setAvailableRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
-  const [notification, setNotification] = useState("");
   const [search, setSearch] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);

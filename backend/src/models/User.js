@@ -53,14 +53,6 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
-    verificationTokenHash: {
-      type: String,
-      select: false,
-    },
-    verificationTokenExpiresAt: {
-      type: Date,
-      select: false,
-    },
     passwordResetTokenHash: {
       type: String,
       select: false,

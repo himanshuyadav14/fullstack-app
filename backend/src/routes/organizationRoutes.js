@@ -50,7 +50,6 @@ router.get("/:orgId/roles/permissions", requireOrgPermission("role:read"), getPe
 router.get("/:orgId/roles", requireOrgPermission("member:read"), getOrganizationRoles);
 router.post("/:orgId/roles", requireOrgPermission("role:create"), createOrganizationRole);
 router.patch("/:orgId/roles/:roleId", requireOrgPermission("role:update"), updateOrganizationRole);
-router.put("/:orgId/roles/:roleId", requireOrgPermission("role:update"), updateOrganizationRole);
 router.delete("/:orgId/roles/:roleId", requireOrgPermission("role:delete"), deleteOrganizationRole);
 router.get("/:orgId/members", requireOrgPermission("member:read"), getOrganizationMembers);
 router.patch("/:orgId/members/:memberId/role", requireOrgPermission("member:update"), updateMemberRole);

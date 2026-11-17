@@ -8,12 +8,7 @@ import CreateOrgModal from "../components/modals/CreateOrgModal";
 import { useAuthStore } from "../stores/authStore";
 import { useOrgStore } from "../stores/orgStore";
 import { useNotificationStore } from "../stores/notificationStore";
-import {
-  connectSocket,
-  disconnectSocket,
-  joinRoomWhileConnected,
-  useSocket,
-} from "../services/socket";
+import { connectSocket, disconnectSocket } from "../services/socket";
 import { PENDING_INVITE_KEY } from "../utils/pendingInvite";
 
 // Pages that work without belonging to any workspace
@@ -23,7 +18,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = useAuthStore();
-  const { userOrgs, currentOrg, fetchMyOrgs, initialLoaded } = useOrgStore();
+  const { userOrgs, fetchMyOrgs, initialLoaded } = useOrgStore();
   const { fetchUnreadCount, addLiveNotification } = useNotificationStore();
   const [showCreateOrg, setShowCreateOrg] = useState(false);
 
@@ -64,14 +59,6 @@ const AppLayout = () => {
       disconnectSocket();
     };
   }, [token]);
-
-  // 3. Organization room: follows the selected org and rejoins after reconnects
-  const socket = useSocket();
-  const orgId = currentOrg?._id;
-  useEffect(() => {
-    if (!socket || !orgId) return;
-    return joinRoomWhileConnected(socket, "join:org", orgId, "leave:org");
-  }, [socket, orgId]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col">

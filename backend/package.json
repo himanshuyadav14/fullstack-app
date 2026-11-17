@@ -25,8 +25,5 @@
     "multer": "^2.5.0",
     "nodemailer": "^10.3.1",
     "socket.io": "^4.8.4"
-  },
-  "devDependencies": {
-    "socket.io-client": "^4.8.4"
   }
 }

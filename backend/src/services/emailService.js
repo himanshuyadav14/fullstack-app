@@ -64,52 +64,6 @@ const sendInvitationEmail = async ({
   }
 };
 
-/**
- * Sends an email verification link
- */
-const sendVerificationEmail = async ({ to, name, verificationToken }) => {
-  try {
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
-    const verifyUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
-
-    const mailOptions = {
-      from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,
-      to: to,
-      subject: `Verify your email for OrbitHQ`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #0f172a; margin-top: 0;">Welcome to OrbitHQ, ${name}!</h2>
-          <p style="color: #334155; font-size: 16px; line-height: 1.5;">
-            Please verify your email address to activate your account and access workspace invitations.
-          </p>
-          <div style="margin: 28px 0;">
-            <a href="${verifyUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
-              Verify Email Address
-            </a>
-          </div>
-          <p style="color: #64748b; font-size: 14px; line-height: 1.5;">
-            Verification Token: <code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${verificationToken}</code>
-          </p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
-            This link will expire in 24 hours.
-          </p>
-        </div>
-      `,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log("📨 Verification email sent successfully:", info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error("❌ Gmail Verification Send Error:", error.message);
-    return { success: false, error: error.message };
-  }
-};
-
-/**
- * Sends a password reset link
- */
 const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
   try {
     const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
@@ -200,7 +154,6 @@ const sendVerificationOtpEmail = async ({ to, name, otp }) => {
 
 module.exports = {
   sendInvitationEmail,
-  sendVerificationEmail,
   sendPasswordResetEmail,
   sendVerificationOtpEmail,
 };

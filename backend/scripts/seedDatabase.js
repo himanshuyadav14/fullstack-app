@@ -123,7 +123,6 @@ async function seed() {
         description: "Organization Administrator",
         isSystemRole: true,
         permissions: [
-          PERMISSIONS.USER_READ,
           PERMISSIONS.MEMBER_READ,
           PERMISSIONS.MEMBER_UPDATE,
           PERMISSIONS.MEMBER_REMOVE,
@@ -972,7 +971,7 @@ async function seed() {
   });
 
   // Apex Tasks
-  const apexTasks = await Task.insertMany([
+  await Task.insertMany([
     {
       title: "Deploy Prometheus alertmanager for cluster OOM spikes",
       taskKey: "K8S-1",
