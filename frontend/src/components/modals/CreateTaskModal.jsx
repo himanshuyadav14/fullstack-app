@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "../common/Modal";
+import CustomSelect from "../common/CustomSelect";
 import api from "../../services/api";
 import { ENDPOINTS } from "../../services/urls";
 
@@ -50,22 +51,16 @@ const CreateTaskModal = ({
           </div>
         )}
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Target Project *
-          </label>
-          <select
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 cursor-pointer"
-          >
-            {projects.map((p) => (
-              <option key={p._id} value={p._id}>
-                {p.name} ({p.key})
-              </option>
-            ))}
-          </select>
-        </div>
+        <CustomSelect
+          label="Target Project *"
+          value={projectId}
+          onChange={(val) => setProjectId(val)}
+          options={projects.map((p) => ({
+            value: p._id,
+            label: `${p.name} (${p.key})`,
+          }))}
+          placeholder="Select project"
+        />
 
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
@@ -81,21 +76,17 @@ const CreateTaskModal = ({
           />
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Priority
-          </label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 cursor-pointer"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
-        </div>
+        <CustomSelect
+          label="Priority"
+          value={priority}
+          onChange={(val) => setPriority(val)}
+          options={[
+            { value: "low", label: "Low Priority" },
+            { value: "medium", label: "Medium Priority" },
+            { value: "high", label: "High Priority" },
+            { value: "urgent", label: "Urgent Priority" },
+          ]}
+        />
 
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">

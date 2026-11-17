@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import OrbitLogo from "../common/OrbitLogo";
 import ThemeToggle from "../common/ThemeToggle";
+import CustomSelect from "../common/CustomSelect";
 import { useAuthStore } from "../../stores/authStore";
 import { useOrgStore } from "../../stores/orgStore";
 import { useNotificationStore } from "../../stores/notificationStore";
@@ -39,37 +40,33 @@ const Navbar = ({ onOpenCreateOrg }) => {
         {/* Workspace Switcher */}
         {userOrgs.length > 0 && (
           <div className="flex items-center gap-2">
-            {currentOrg?.logo ? (
-              <img
-                src={currentOrg.logo}
-                alt={currentOrg.name}
-                className="w-6 h-6 rounded-md object-cover border border-zinc-200 dark:border-zinc-700 shadow-2xs"
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold text-[11px] flex items-center justify-center uppercase shadow-2xs">
-                {currentOrg?.name?.charAt(0) || "W"}
-              </div>
-            )}
-
-            <select
+            <CustomSelect
+              size="sm"
               value={currentOrg?._id || ""}
-              onChange={(e) => {
-                const selected = userOrgs.find((o) => o._id === e.target.value);
+              onChange={(orgId) => {
+                const selected = userOrgs.find((o) => o._id === orgId);
                 if (selected) setCurrentOrg(selected);
               }}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 cursor-pointer"
-            >
-              {userOrgs.map((org) => (
-                <option key={org._id} value={org._id}>
-                  {org.name}
-                </option>
-              ))}
-            </select>
+              options={userOrgs.map((org) => ({
+                value: org._id,
+                label: org.name,
+                avatar: org.logo || org.name?.charAt(0) || "W",
+                isAvatarUrl: Boolean(org.logo),
+              }))}
+              headerTitle="Workspaces"
+              footerAction={{
+                label: "Create New Workspace",
+                onClick: onOpenCreateOrg,
+              }}
+              className="min-w-[170px]"
+              buttonClassName="bg-zinc-50/80 dark:bg-zinc-800/80 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              menuClassName="min-w-[230px]"
+            />
 
             <button
               type="button"
               onClick={onOpenCreateOrg}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-pointer"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-pointer shrink-0"
               title="Create another organization"
             >
               + New

@@ -143,8 +143,11 @@ const DashboardPage = () => {
 
       {/* Project Health Table */}
       <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs">
-        <h3 className="text-base font-bold tracking-tight mb-4">
-          📁 Project Health & Progress
+        <h3 className="flex items-center gap-2 text-base font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100">
+          <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          <span>Project Health & Progress</span>
         </h3>
         {projectMetrics.length === 0 ? (
           <div className="text-xs text-slate-400 dark:text-zinc-500 py-4 text-center">
@@ -168,7 +171,7 @@ const DashboardPage = () => {
                     <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200">
                       {p.name}
                     </td>
-                    <td className="py-3 font-mono text-xs text-blue-600 dark:text-blue-400">
+                    <td className="py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 font-medium">
                       {p.key}
                     </td>
                     <td className="py-3">{p.totalTasks}</td>
@@ -196,8 +199,11 @@ const DashboardPage = () => {
 
       {/* Member Workload Table */}
       <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs">
-        <h3 className="text-base font-bold tracking-tight mb-4">
-          👥 Team Member Workload
+        <h3 className="flex items-center gap-2 text-base font-bold tracking-tight mb-4 text-zinc-900 dark:text-zinc-100">
+          <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span>Team Member Workload</span>
         </h3>
         {workloadMetrics.length === 0 ? (
           <div className="text-xs text-slate-400 dark:text-zinc-500 py-4 text-center">

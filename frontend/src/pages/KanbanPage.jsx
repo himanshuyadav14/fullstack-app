@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useOrgStore } from "../stores/orgStore";
+import CustomSelect from "../components/common/CustomSelect";
 import KanbanColumn from "../components/kanban/KanbanColumn";
 import TaskDetailModal from "../components/kanban/TaskDetailModal";
 import CreateProjectModal from "../components/modals/CreateProjectModal";
@@ -152,17 +153,16 @@ const KanbanPage = () => {
             Project:
           </label>
           {projects.length > 0 ? (
-            <select
+            <CustomSelect
+              size="sm"
               value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="px-3.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 cursor-pointer"
-            >
-              {projects.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name} ({p.key})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedProjectId(val)}
+              options={projects.map((p) => ({
+                value: p._id,
+                label: `${p.name} (${p.key})`,
+              }))}
+              className="min-w-[190px]"
+            />
           ) : (
             <span className="text-xs text-slate-400">No projects created yet</span>
           )}
@@ -170,7 +170,7 @@ const KanbanPage = () => {
           <button
             type="button"
             onClick={() => setShowCreateProject(true)}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:text-blue-600 hover:border-blue-400 transition-colors cursor-pointer"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-pointer"
           >
             + New Project
           </button>
@@ -213,7 +213,7 @@ const KanbanPage = () => {
             dotColorClass="bg-slate-400 dark:bg-slate-500"
             tasks={tasks.todo}
             onMove={(id) => handleMoveStatus(id, "in_progress")}
-            moveLabel="Start →"
+            moveLabel="Start"
             onTaskClick={(t) => setActiveTask(t)}
           />
 
@@ -222,7 +222,7 @@ const KanbanPage = () => {
             dotColorClass="bg-amber-500"
             tasks={tasks.in_progress}
             onMove={(id) => handleMoveStatus(id, "done")}
-            moveLabel="Mark Done ✓"
+            moveLabel="Mark Done"
             onTaskClick={(t) => setActiveTask(t)}
           />
 

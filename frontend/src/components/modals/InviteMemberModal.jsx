@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "../common/Modal";
+import CustomSelect from "../common/CustomSelect";
 import api from "../../services/api";
 import { ENDPOINTS } from "../../services/urls";
 
@@ -62,20 +63,16 @@ const InviteMemberModal = ({ orgId, onClose, onMemberInvited }) => {
           />
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Initial Workspace Role
-          </label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100 cursor-pointer"
-          >
-            <option value="member">Member (Can create tasks & comments)</option>
-            <option value="admin">Admin (Can manage projects, teams & members)</option>
-            <option value="viewer">Viewer (Read-only access)</option>
-          </select>
-        </div>
+        <CustomSelect
+          label="Initial Workspace Role"
+          value={role}
+          onChange={(val) => setRole(val)}
+          options={[
+            { value: "member", label: "Member (Can create tasks & comments)" },
+            { value: "admin", label: "Admin (Can manage projects, teams & members)" },
+            { value: "viewer", label: "Viewer (Read-only access)" },
+          ]}
+        />
 
         <button
           type="submit"

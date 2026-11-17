@@ -83,8 +83,11 @@ const NotificationsPage = () => {
               </div>
 
               {!n.isRead && (
-                <div className="pt-2 text-[11px] text-blue-600 dark:text-blue-400 font-semibold">
-                  Click to mark as read ✓
+                <div className="flex items-center gap-1.5 pt-2 text-[11px] text-zinc-900 dark:text-zinc-100 font-semibold">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Click to mark as read</span>
                 </div>
               )}
             </div>
