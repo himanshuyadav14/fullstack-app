@@ -210,16 +210,19 @@ const getProjectAnalytics = async (req, res) => {
           : 0;
 
       return {
+        _id: proj._id,
         projectId: proj._id,
         name: proj.name,
         key: proj.key,
         status: proj.status,
+        team: proj.team,
         category: proj.category,
         totalTasks: stats.totalTasks,
         completedTasks: stats.completedTasks,
         inProgressTasks: stats.inProgressTasks,
         overdueTasks: stats.overdueTasks,
         completionPercentage,
+        completionRate: completionPercentage,
       };
     });
 

@@ -167,36 +167,41 @@ const DashboardPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
-                {projectMetrics.map((p) => (
-                  <tr key={p._id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
-                    <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200">
-                      {p.name}
-                    </td>
-                    <td className="py-3 text-xs">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium border border-zinc-200/60 dark:border-zinc-700/60">
-                        {p.team?.name || "Engineering"}
-                      </span>
-                    </td>
-                    <td className="py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 font-medium">
-                      {p.key}
-                    </td>
-                    <td className="py-3">{p.totalTasks}</td>
-                    <td className="py-3 text-green-600 dark:text-green-400 font-medium">
-                      {p.completedTasks}
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 rounded-full bg-slate-200 dark:bg-zinc-700 overflow-hidden">
-                          <div
-                            className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full transition-all"
-                            style={{ width: `${p.completionRate || 0}%` }}
-                          />
+                {projectMetrics.map((p, pIdx) => {
+                  const pKey = p._id || p.projectId || p.key || `proj-${pIdx}`;
+                  const completionRate = p.completionRate ?? p.completionPercentage ?? 0;
+
+                  return (
+                    <tr key={pKey} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
+                      <td className="py-3 font-semibold text-slate-800 dark:text-zinc-200">
+                        {p.name}
+                      </td>
+                      <td className="py-3 text-xs">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium border border-zinc-200/60 dark:border-zinc-700/60">
+                          {p.team?.name || "Engineering"}
+                        </span>
+                      </td>
+                      <td className="py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300 font-medium">
+                        {p.key}
+                      </td>
+                      <td className="py-3">{p.totalTasks}</td>
+                      <td className="py-3 text-green-600 dark:text-green-400 font-medium">
+                        {p.completedTasks}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-2 rounded-full bg-slate-200 dark:bg-zinc-700 overflow-hidden">
+                            <div
+                              className="h-full bg-zinc-900 dark:bg-zinc-100 rounded-full transition-all"
+                              style={{ width: `${completionRate}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{completionRate}%</span>
                         </div>
-                        <span className="text-xs font-medium">{p.completionRate}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
