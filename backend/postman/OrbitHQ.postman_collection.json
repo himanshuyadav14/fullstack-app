@@ -24,26 +24,23 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
+                  "// Signup does not return a session token; verify the email with the OTP first.",
+                  "// The OTP is echoed only when the server runs with NODE_ENV=development.",
                   "if (pm.response.code === 201) {",
                   "    const res = pm.response.json();",
-                  "    if (res.token) {",
-                  "        pm.environment.set('token', res.token);",
-                  "    }",
                   "    if (res.user && res.user.id) {",
                   "        pm.environment.set('userId', res.user.id);",
                   "    }",
-                  "    if (res.verificationToken) {",
-                  "        pm.environment.set('verificationToken', res.verificationToken);",
-                  "        console.log('✅ verificationToken saved:', res.verificationToken);",
-                  "    }",
                   "    if (res.otp) {",
                   "        pm.environment.set('otp', res.otp);",
-                  "        console.log('✅ OTP saved:', res.otp);",
+                  "        console.log('✅ OTP saved for Owner:', res.otp);",
+                  "    } else {",
+                  "        console.log('ℹ️ No OTP in response (NODE_ENV is not development). Copy it from the email into {{otp}}.');",
                   "    }",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
               }
             }
           ],
@@ -90,7 +87,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+              "raw": "{\n  \"email\": \"himyadav.yh@gmail.com\",\n  \"otp\": \"{{otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/verify-email",
@@ -103,7 +105,24 @@
                 "verify-email"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.token) {",
+                  "        pm.environment.set('token', res.token);",
+                  "        console.log('✅ Session token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Login User (Owner)",
@@ -161,19 +180,23 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
+                  "// Signup does not return a session token; verify the email with the OTP first.",
+                  "// The OTP is echoed only when the server runs with NODE_ENV=development.",
                   "if (pm.response.code === 201) {",
                   "    const res = pm.response.json();",
-                  "    if (res.token) {",
-                  "        pm.environment.set('token', res.token);",
+                  "    if (res.user && res.user.id) {",
+                  "        pm.environment.set('inviteeUserId', res.user.id);",
                   "    }",
-                  "    if (res.verificationToken) {",
-                  "        pm.environment.set('verificationToken', res.verificationToken);",
-                  "        console.log('✅ verificationToken saved for Invitee:', res.verificationToken);",
+                  "    if (res.otp) {",
+                  "        pm.environment.set('inviteeOtp', res.otp);",
+                  "        console.log('✅ OTP saved for Invitee:', res.otp);",
+                  "    } else {",
+                  "        console.log('ℹ️ No OTP in response (NODE_ENV is not development). Copy it from the email into {{inviteeOtp}}.');",
                   "    }",
                   "}"
-                ],
-                "type": "text/javascript"
+                ]
               }
             }
           ],
@@ -220,7 +243,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}"
+              "raw": "{\n  \"email\": \"hyadav@quantaraai.com\",\n  \"otp\": \"{{inviteeOtp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/verify-email",
@@ -233,7 +261,24 @@
                 "verify-email"
               ]
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    if (res.token) {",
+                  "        pm.environment.set('token', res.token);",
+                  "        console.log('✅ Session token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Login Second User (Invitee)",
@@ -363,71 +408,8 @@
       ]
     },
     {
-      "name": "2. User Management",
+      "name": "2. User Profile",
       "item": [
-        {
-          "name": "Get All Users",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get User By ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update User Role",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"roleId\": \"{{roleId}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}/role",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userId}}",
-                "role"
-              ]
-            }
-          }
-        },
         {
           "name": "Update My Profile",
           "request": {
@@ -456,10 +438,15 @@
           }
         },
         {
-          "name": "Delete Own Account",
+          "name": "Delete My Account (soft delete, password required)",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/users/profile",
               "host": [
@@ -470,184 +457,22 @@
                 "users",
                 "profile"
               ]
-            }
-          }
-        },
-        {
-          "name": "Delete Another User (Admin)",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "3. Roles & Dynamic RBAC",
-      "item": [
-        {
-          "name": "Get All Permissions",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/roles/permissions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "roles",
-                "permissions"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Organization Roles",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    const res = pm.response.json();",
-                  "    if (res.roles && res.roles.length > 0) {",
-                  "        // Find member role for invitation",
-                  "        const memberRole = res.roles.find(r => r.name === 'member') || res.roles[0];",
-                  "        pm.environment.set('roleId', memberRole._id);",
-                  "        console.log('✅ roleId set to:', memberRole.name, memberRole._id);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/roles?organizationId={{orgId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "roles"
-              ],
-              "query": [
-                {
-                  "key": "organizationId",
-                  "value": "{{orgId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Custom Role",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201) {",
-                  "    const res = pm.response.json();",
-                  "    if (res.role && res.role._id) {",
-                  "        pm.environment.set('roleId', res.role._id);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
               }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"designer\",\n  \"description\": \"Product UI/UX Designer\",\n  \"organization\": \"{{orgId}}\",\n  \"permissions\": [\n    \"project:read\",\n    \"task:read\",\n    \"comment:read\",\n    \"comment:create\"\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/roles",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "roles"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Role Permissions",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"permissions\": [\n    \"project:read\",\n    \"task:read\",\n    \"task:update\",\n    \"comment:read\",\n    \"comment:create\"\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/roles/{{roleId}}/permissions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "roles",
-                "{{roleId}}",
-                "permissions"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Role",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/roles/{{roleId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "roles",
-                "{{roleId}}"
-              ]
             }
           }
         }
       ]
     },
     {
-      "name": "4. Organizations (Multi-Tenancy)",
+      "name": "3. Organizations (Multi-Tenancy)",
       "item": [
         {
           "name": "Create Organization",
@@ -878,7 +703,7 @@
       ]
     },
     {
-      "name": "5. Invitations (Workspace Members)",
+      "name": "4. Invitations (Workspace Members)",
       "item": [
         {
           "name": "Send Invitation to Email",
@@ -1061,11 +886,49 @@
               ]
             }
           }
+        },
+        {
+          "name": "Accept Invitation by ID (in-app, Run as Invitee)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/{{invitationId}}/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "{{invitationId}}",
+                "accept"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Invitation by ID (in-app, Run as Invitee)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invitations/{{invitationId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "invitations",
+                "{{invitationId}}",
+                "reject"
+              ]
+            }
+          }
         }
       ]
     },
     {
-      "name": "6. Teams Management",
+      "name": "5. Teams Management",
       "item": [
         {
           "name": "Create Team",
@@ -1281,7 +1144,7 @@
       ]
     },
     {
-      "name": "7. Projects Management",
+      "name": "6. Projects Management",
       "item": [
         {
           "name": "Create Project",
@@ -1497,7 +1360,7 @@
       ]
     },
     {
-      "name": "8. Tasks & Kanban Board",
+      "name": "7. Tasks & Kanban Board",
       "item": [
         {
           "name": "Create Task in Project",
@@ -1552,7 +1415,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/tasks",
+              "raw": "{{baseUrl}}/api/organizations/{{orgId}}/projects/{{projectId}}/tasks/kanban",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1562,7 +1425,8 @@
                 "{{orgId}}",
                 "projects",
                 "{{projectId}}",
-                "tasks"
+                "tasks",
+                "kanban"
               ]
             }
           }
@@ -1744,7 +1608,7 @@
       ]
     },
     {
-      "name": "9. Task Comments & Discussions",
+      "name": "8. Task Comments & Discussions",
       "item": [
         {
           "name": "Add Comment to Task",
@@ -1896,7 +1760,7 @@
       ]
     },
     {
-      "name": "10. File Uploads (Cloudinary)",
+      "name": "9. File Uploads (Cloudinary)",
       "item": [
         {
           "name": "Upload Profile Avatar (User)",
@@ -2020,7 +1884,7 @@
       ]
     },
     {
-      "name": "11. In-App Notifications",
+      "name": "10. In-App Notifications",
       "item": [
         {
           "name": "Get My Notifications (Paginated)",
@@ -2163,7 +2027,7 @@
       ]
     },
     {
-      "name": "12. Dashboard & Analytics",
+      "name": "11. Dashboard & Analytics",
       "item": [
         {
           "name": "Get Organization Executive Dashboard",
