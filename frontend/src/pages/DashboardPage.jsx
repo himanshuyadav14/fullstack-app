@@ -61,8 +61,8 @@ const DashboardPage = () => {
             className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-zinc-800 shadow-xs"
           />
         ) : (
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-lg flex items-center justify-center uppercase shadow-xs">
-            {currentOrg?.name?.charAt(0) || "O"}
+          <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold text-base flex items-center justify-center uppercase shadow-xs">
+            {currentOrg?.name?.charAt(0) || "W"}
           </div>
         )}
 
@@ -70,19 +70,19 @@ const DashboardPage = () => {
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-bold tracking-tight">Executive Dashboard</h2>
             {currentOrg?.industry && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 font-medium">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium border border-zinc-200 dark:border-zinc-700">
                 {currentOrg.industry}
               </span>
             )}
             {currentOrg?.teamSize && (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-medium">
-                👥 {currentOrg.teamSize} {currentOrg.teamSize === "1" ? "member" : "members"}
+              <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium border border-zinc-200 dark:border-zinc-700">
+                {currentOrg.teamSize} {currentOrg.teamSize === "1" ? "member" : "members"}
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
             High-level overview of project health, workload, and task completion for{" "}
-            <strong className="text-blue-600 dark:text-blue-400">
+            <strong className="text-zinc-900 dark:text-zinc-100">
               {currentOrg?.name}
             </strong>
           </p>
@@ -91,16 +91,15 @@ const DashboardPage = () => {
 
       {/* Personal Snapshot */}
       {mySummary && (
-        <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-950/20 flex flex-wrap items-center justify-between gap-4">
+        <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🎯</span>
             <div>
-              <div className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                Your Personal Snapshot
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                Personal Snapshot
               </div>
-              <div className="text-xs text-amber-700 dark:text-amber-400">
+              <div className="text-xs text-zinc-600 dark:text-zinc-400">
                 You have{" "}
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                   {mySummary.myPendingTasksCount} pending tasks
                 </span>{" "}
                 assigned to you in this organization.
@@ -108,7 +107,7 @@ const DashboardPage = () => {
             </div>
           </div>
           {mySummary.myPendingTasksCount > 0 && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-200/80 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300">
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
               Action Required
             </span>
           )}

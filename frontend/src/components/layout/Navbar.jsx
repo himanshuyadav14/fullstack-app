@@ -16,21 +16,21 @@ const Navbar = ({ onOpenCreateOrg }) => {
     const isActive = location.pathname === path;
     return `px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
       isActive
-        ? "bg-blue-600 text-white shadow-xs"
-        : "text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800/60"
+        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs"
+        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
     }`;
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-zinc-100">
+    <header className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
       {/* Left: Brand & Navigation */}
       <div className="flex items-center gap-6">
         <Link
           to="/"
-          className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-slate-900 dark:text-white"
+          className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-zinc-900 dark:text-white"
         >
           <OrbitLogo className="w-6 h-6" />
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+          <span className="font-bold tracking-tight">
             OrbitHQ
           </span>
         </Link>
@@ -42,11 +42,11 @@ const Navbar = ({ onOpenCreateOrg }) => {
               <img
                 src={currentOrg.logo}
                 alt={currentOrg.name}
-                className="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-zinc-700 shadow-2xs"
+                className="w-6 h-6 rounded-md object-cover border border-zinc-200 dark:border-zinc-700 shadow-2xs"
               />
             ) : (
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-[11px] flex items-center justify-center uppercase shadow-2xs">
-                {currentOrg?.name?.charAt(0) || "O"}
+              <div className="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold text-[11px] flex items-center justify-center uppercase shadow-2xs">
+                {currentOrg?.name?.charAt(0) || "W"}
               </div>
             )}
 
@@ -56,7 +56,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
                 const selected = userOrgs.find((o) => o._id === e.target.value);
                 if (selected) setCurrentOrg(selected);
               }}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 cursor-pointer"
             >
               {userOrgs.map((org) => (
                 <option key={org._id} value={org._id}>
@@ -68,7 +68,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
             <button
               type="button"
               onClick={onOpenCreateOrg}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 dark:border-zinc-700 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:border-slate-400 dark:hover:border-zinc-500 transition-colors cursor-pointer"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors cursor-pointer"
               title="Create another organization"
             >
               + New
@@ -78,21 +78,21 @@ const Navbar = ({ onOpenCreateOrg }) => {
 
         {/* Navigation Tabs */}
         {currentOrg && (
-          <nav className="flex items-center gap-1.5">
+          <nav className="flex items-center gap-1">
             <Link to="/" className={getNavLinkClass("/")}>
-              📊 Dashboard
+              Dashboard
             </Link>
             <Link to="/kanban" className={getNavLinkClass("/kanban")}>
-              📋 Kanban
+              Kanban
             </Link>
             <Link to="/members" className={getNavLinkClass("/members")}>
-              👥 Members
+              Members
             </Link>
             <Link to="/teams" className={getNavLinkClass("/teams")}>
-              🛡️ Teams
+              Teams
             </Link>
             <Link to="/notifications" className={getNavLinkClass("/notifications")}>
-              🔔 Alerts {unreadCount > 0 && `(${unreadCount})`}
+              Alerts {unreadCount > 0 && `(${unreadCount})`}
             </Link>
           </nav>
         )}
@@ -104,21 +104,21 @@ const Navbar = ({ onOpenCreateOrg }) => {
         <button
           type="button"
           onClick={toggleTheme}
-          className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/80 text-xs font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+          className="px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/80 text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
           title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+          {theme === "dark" ? "Light" : "Dark"}
         </button>
 
         {/* User Badge */}
         <div className="text-right text-xs">
           <div className="font-semibold">{user?.name}</div>
           {currentOrg && currentRole ? (
-            <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-              Role: <span className="text-blue-600 dark:text-blue-400 font-medium capitalize">{currentRole}</span>
+            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Role: <span className="text-zinc-900 dark:text-zinc-100 font-medium capitalize">{currentRole}</span>
             </div>
           ) : (
-            <div className="text-[11px] text-slate-400 dark:text-zinc-500">
+            <div className="text-[11px] text-zinc-400 dark:text-zinc-500">
               No Workspace
             </div>
           )}

@@ -1,29 +1,32 @@
 import { useState, useRef } from "react";
 import Modal from "../common/Modal";
+import CustomSelect from "../common/CustomSelect";
 import { useOrgStore } from "../../stores/orgStore";
 
 const INDUSTRIES = [
-  "Software & Tech",
+  "Software & Technology",
   "Design & Creative",
-  "Marketing & Agency",
+  "Marketing & Advertising",
   "E-Commerce & Retail",
   "Finance & Fintech",
-  "Healthcare & Education",
+  "Healthcare & Life Sciences",
+  "Education & EdTech",
+  "Consulting & Services",
   "Other",
 ];
 
 const TEAM_SIZES = [
-  { value: "1", label: "Just me", icon: "👤" },
-  { value: "2-10", label: "2 - 10", icon: "👥" },
-  { value: "11-50", label: "11 - 50", icon: "🚀" },
-  { value: "51-200", label: "51 - 200", icon: "🏢" },
-  { value: "201+", label: "201+", icon: "🌐" },
+  { value: "1", label: "Just me (1 person)" },
+  { value: "2-10", label: "2 - 10 employees" },
+  { value: "11-50", label: "11 - 50 employees" },
+  { value: "51-200", label: "51 - 200 employees" },
+  { value: "201+", label: "201+ employees" },
 ];
 
 const CreateOrgModal = ({ onClose }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [industry, setIndustry] = useState("Software & Tech");
+  const [industry, setIndustry] = useState("Software & Technology");
   const [teamSize, setTeamSize] = useState("2-10");
   const [logoPreview, setLogoPreview] = useState(null);
   const [error, setError] = useState("");
@@ -48,9 +51,8 @@ const CreateOrgModal = ({ onClose }) => {
       return;
     }
 
-    // Limit to 3MB
     if (file.size > 3 * 1024 * 1024) {
-      setError("Logo size should be under 3MB.");
+      setError("Logo size must be less than 3MB.");
       return;
     }
 
@@ -100,29 +102,32 @@ const CreateOrgModal = ({ onClose }) => {
 
   return (
     <Modal title="Create New Workspace" onClose={onClose} maxWidth="max-w-lg">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
             {error}
           </div>
         )}
 
-        {/* Workspace Logo & Avatar Preview */}
+        {/* Workspace Logo Upload */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-2">
-            Workspace Logo / Icon <span className="text-slate-400 dark:text-zinc-500 font-normal normal-case">(Optional)</span>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-2">
+            Workspace Logo{" "}
+            <span className="text-zinc-400 dark:text-zinc-500 font-normal normal-case">
+              (Optional)
+            </span>
           </label>
           <div className="flex items-center gap-4">
-            <div className="relative group">
+            <div className="relative">
               {logoPreview ? (
                 <img
                   src={logoPreview}
                   alt="Workspace Logo"
-                  className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-zinc-700 shadow-xs"
+                  className="w-13 h-13 rounded-xl object-cover border border-zinc-200 dark:border-zinc-800 shadow-2xs"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-xl flex items-center justify-center uppercase shadow-xs">
-                  {name.trim() ? name.trim().charAt(0) : "O"}
+                <div className="w-13 h-13 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 font-semibold text-lg flex items-center justify-center uppercase shadow-2xs">
+                  {name.trim() ? name.trim().charAt(0) : "W"}
                 </div>
               )}
             </div>
@@ -132,22 +137,35 @@ const CreateOrgModal = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700/80 text-zinc-900 dark:text-zinc-100 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  📁 Upload Logo
+                  <svg
+                    className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
+                  </svg>
+                  <span>Upload Logo</span>
                 </button>
                 {logoPreview && (
                   <button
                     type="button"
                     onClick={handleRemoveLogo}
-                    className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                    className="px-2.5 py-1.5 text-xs font-medium rounded-lg text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                   >
                     Remove
                   </button>
                 )}
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-zinc-500">
-                PNG, JPG, or SVG up to 3MB. Auto-generates initial if empty.
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                PNG, JPG, or SVG up to 3MB.
               </p>
               <input
                 ref={fileInputRef}
@@ -162,7 +180,7 @@ const CreateOrgModal = ({ onClose }) => {
 
         {/* Workspace Name & Live Slug */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1.5">
             Workspace Name *
           </label>
           <input
@@ -171,91 +189,73 @@ const CreateOrgModal = ({ onClose }) => {
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Acme Corp, Engineering, or OrbitHQ"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="e.g. Acme Corp or Engineering"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
           />
           {slugPreview && (
-            <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">
-              URL Slug: <span className="text-blue-600 dark:text-blue-400 font-mono font-medium">orbithq.com/{slugPreview}</span>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+              URL Slug:{" "}
+              <span className="text-zinc-900 dark:text-zinc-100 font-mono font-medium">
+                orbithq.com/{slugPreview}
+              </span>
             </p>
           )}
         </div>
 
-        {/* Expected Team Size */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Expected Team Size <span className="text-slate-400 dark:text-zinc-500 font-normal normal-case">(Employees)</span>
-          </label>
-          <div className="grid grid-cols-5 gap-2">
-            {TEAM_SIZES.map((tier) => (
-              <button
-                key={tier.value}
-                type="button"
-                onClick={() => setTeamSize(tier.value)}
-                className={`py-2 px-1 text-center rounded-lg border text-xs font-medium transition-all cursor-pointer ${
-                  teamSize === tier.value
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-zinc-700"
-                }`}
-              >
-                <div className="text-sm mb-0.5">{tier.icon}</div>
-                <div>{tier.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Expected Team Size - Custom Dropdown */}
+        <CustomSelect
+          label="Expected Team Size"
+          options={TEAM_SIZES}
+          value={teamSize}
+          onChange={setTeamSize}
+        />
 
-        {/* Industry / Category */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Industry / Category
-          </label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          >
-            {INDUSTRIES.map((ind) => (
-              <option key={ind} value={ind}>
-                {ind}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Industry / Category - Custom Dropdown */}
+        <CustomSelect
+          label="Industry / Category"
+          options={INDUSTRIES}
+          value={industry}
+          onChange={setIndustry}
+        />
 
         {/* Description / What they do */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-            Description / What your team does <span className="text-slate-400 dark:text-zinc-500 font-normal normal-case">(Optional)</span>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1.5">
+            Description / What your team does{" "}
+            <span className="text-zinc-400 dark:text-zinc-500 font-normal normal-case">
+              (Optional)
+            </span>
           </label>
           <textarea
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Building enterprise developer tools, AI workflows, and cloud applications"
-            className="w-full px-3.5 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 resize-none"
             maxLength={500}
           />
         </div>
 
-        {/* Submit */}
+        {/* Submit Buttons */}
         <div className="pt-2 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+            className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading || uploading || !name.trim()}
-            className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer flex items-center gap-2"
+            className="py-2.5 px-6 bg-zinc-950 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white text-white disabled:opacity-50 font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer flex items-center gap-2"
           >
             {(loading || uploading) && (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
             )}
-            {loading || uploading ? "Creating..." : "Create Workspace"}
+            <span>
+              {loading || uploading ? "Creating..." : "Create Workspace"}
+            </span>
           </button>
         </div>
       </form>
