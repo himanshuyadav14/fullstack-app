@@ -67,17 +67,26 @@ const PERMISSION_GROUPS = [
   },
 ];
 
-const CreateRoleModal = ({ orgId, onClose, onRoleCreated }) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [selectedPermissions, setSelectedPermissions] = useState([
-    "task:read",
-    "task:create",
-    "task:update",
-    "comment:read",
-    "comment:create",
-    "project:read",
-  ]);
+const CreateRoleModal = ({
+  orgId,
+  roleToEdit = null,
+  onClose,
+  onRoleCreated,
+  onRoleUpdated,
+}) => {
+  const isEditing = Boolean(roleToEdit);
+  const [name, setName] = useState(roleToEdit?.name || "");
+  const [description, setDescription] = useState(roleToEdit?.description || "");
+  const [selectedPermissions, setSelectedPermissions] = useState(
+    roleToEdit?.permissions || [
+      "task:read",
+      "task:create",
+      "task:update",
+      "comment:read",
+      "comment:create",
+      "project:read",
+    ]
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -114,23 +123,37 @@ const CreateRoleModal = ({ orgId, onClose, onRoleCreated }) => {
     setLoading(true);
     setError("");
     try {
-      const res = await api.post(ENDPOINTS.ORGANIZATIONS.CREATE_ROLE(orgId), {
-        name: name.trim(),
-        description: description.trim(),
-        permissions: selectedPermissions,
-      });
-
-      if (onRoleCreated) onRoleCreated(res.data.data);
+      if (isEditing) {
+        const res = await api.patch(
+          ENDPOINTS.ORGANIZATIONS.UPDATE_ROLE(orgId, roleToEdit._id),
+          {
+            description: description.trim(),
+            permissions: selectedPermissions,
+          }
+        );
+        if (onRoleUpdated) onRoleUpdated(res.data.data);
+      } else {
+        const res = await api.post(ENDPOINTS.ORGANIZATIONS.CREATE_ROLE(orgId), {
+          name: name.trim(),
+          description: description.trim(),
+          permissions: selectedPermissions,
+        });
+        if (onRoleCreated) onRoleCreated(res.data.data);
+      }
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create custom role");
+      setError(err.response?.data?.message || `Failed to ${isEditing ? "update" : "create"} custom role`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal title="Create Custom Role" onClose={onClose} maxWidth="max-w-2xl">
+    <Modal
+      title={isEditing ? `Edit Role: ${roleToEdit.name.toUpperCase()}` : "Create Custom Role"}
+      onClose={onClose}
+      maxWidth="max-w-2xl"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
@@ -146,11 +169,17 @@ const CreateRoleModal = ({ orgId, onClose, onRoleCreated }) => {
           <input
             type="text"
             required
+            disabled={isEditing}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. QA Engineer, Technical Lead, Designer"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-zinc-900 dark:focus:border-zinc-100"
+            className={`w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 ${
+              isEditing ? "opacity-60 cursor-not-allowed uppercase font-semibold" : ""
+            }`}
           />
+          {isEditing && (
+            <p className="text-[11px] text-zinc-400 mt-1">Role identifier cannot be renamed.</p>
+          )}
         </div>
 
         {/* Description */}
@@ -270,7 +299,13 @@ const CreateRoleModal = ({ orgId, onClose, onRoleCreated }) => {
             disabled={loading || !name.trim()}
             className="w-full py-2.5 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white disabled:opacity-50 font-medium rounded-lg text-sm transition-colors shadow-xs cursor-pointer"
           >
-            {loading ? "Creating Custom Role..." : "Create Custom Role"}
+            {loading
+              ? isEditing
+                ? "Saving Changes..."
+                : "Creating Custom Role..."
+              : isEditing
+              ? "Save Permissions"
+              : "Create Custom Role"}
           </button>
         </div>
       </form>

@@ -550,10 +550,72 @@ const transferOwnership = async (req, res) => {
   }
 };
 
+/**
+ * 0e. PATCH /api/organizations/:orgId/roles/:roleId
+ * Updates permissions and description for an existing custom role
+ */
+const updateOrganizationRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const { description, permissions } = req.body;
+
+    const role = await Role.findOne({
+      _id: roleId,
+      organization: req.organization._id,
+    });
+
+    if (!role) {
+      return res.status(404).json({ success: false, message: "Role not found in this organization" });
+    }
+
+    if (role.isSystemRole) {
+      return res.status(403).json({
+        success: false,
+        message: "System roles (Owner, Admin, Manager, Member) permissions cannot be modified",
+      });
+    }
+
+    if (typeof description === "string") {
+      role.description = description.trim();
+    }
+
+    if (Array.isArray(permissions)) {
+      const allowed = Object.values(PERMISSIONS);
+      const validPermissions = permissions.filter((p) => allowed.includes(p));
+
+      // Privilege check: Non-owners cannot grant permissions exceeding their own
+      if (req.orgRole.name !== "owner") {
+        const myPermissions = req.orgRole.permissions || [];
+        const exceeding = validPermissions.some((p) => !myPermissions.includes(p));
+        if (exceeding) {
+          return res.status(403).json({
+            success: false,
+            message: "Cannot grant permissions exceeding your own authority",
+          });
+        }
+      }
+
+      role.permissions = [...new Set(validPermissions)];
+    }
+
+    await role.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Role '${role.name}' permissions updated successfully`,
+      data: role,
+    });
+  } catch (error) {
+    console.error("updateOrganizationRole Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   getPermissionsList,
   getOrganizationRoles,
   createOrganizationRole,
+  updateOrganizationRole,
   deleteOrganizationRole,
   getOrganizationMembers,
   updateMemberRole,
