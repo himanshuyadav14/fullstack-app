@@ -105,7 +105,56 @@ const sendVerificationEmail = async ({ to, name, verificationToken }) => {
   }
 };
 
+/**
+ * Sends a password reset link
+ */
+const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
+  try {
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
+
+    const mailOptions = {
+      from: `"TeamFlow" <${process.env.EMAIL_USER}>`,
+      to: to,
+      subject: `Reset your TeamFlow Password`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h2 style="color: #0f172a; margin-top: 0;">Password Reset Request</h2>
+          <p style="color: #334155; font-size: 16px; line-height: 1.5;">
+            Hello ${name || "there"},<br /><br />
+            We received a request to reset the password for your TeamFlow account. Click the button below to choose a new password:
+          </p>
+          <div style="margin: 28px 0;">
+            <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+          <p style="color: #64748b; font-size: 14px; line-height: 1.5;">
+            Or copy and paste this link in your browser:<br />
+            <a href="${resetUrl}" style="color: #4f46e5; word-break: break-all;">${resetUrl}</a>
+          </p>
+          <p style="color: #64748b; font-size: 14px; line-height: 1.5;">
+            Reset Token: <code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: bold;">${resetToken}</code>
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
+            This link will expire in 15 minutes. If you did not request a password reset, you can safely ignore this email.
+          </p>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("📨 Password reset email sent successfully:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Gmail Password Reset Send Error:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendInvitationEmail,
   sendVerificationEmail,
+  sendPasswordResetEmail,
 };

@@ -4,7 +4,10 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Membership = require("../models/Membership");
 const { isValidEmail, isValidPassword } = require("../utils/validate");
-const { sendVerificationEmail } = require("../services/emailService");
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../services/emailService");
 
 /**
  * 1. POST /api/auth/signup
@@ -375,10 +378,133 @@ const getMe = async (req, res) => {
   }
 };
 
+/**
+ * 6. POST /api/auth/forgot-password
+ * Generates password reset token and sends reset link via email
+ */
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== "string" || !isValidEmail(email.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid email address is required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail, status: "active" });
+
+    if (!user) {
+      // Return standard success message to prevent email enumeration
+      return res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    // Generate secure random token
+    const rawResetToken = crypto.randomBytes(32).toString("hex");
+    const passwordResetTokenHash = crypto
+      .createHash("sha256")
+      .update(rawResetToken)
+      .digest("hex");
+    const passwordResetExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    user.passwordResetTokenHash = passwordResetTokenHash;
+    user.passwordResetExpiresAt = passwordResetExpiresAt;
+    await user.save();
+
+    // Send email
+    const emailResult = await sendPasswordResetEmail({
+      to: user.email,
+      name: user.name,
+      resetToken: rawResetToken,
+    });
+
+    if (!emailResult?.success) {
+      console.warn("⚠️ Password reset email delivery failed:", emailResult?.error);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (err) {
+    console.error("forgotPassword error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+/**
+ * 7. POST /api/auth/reset-password
+ * Resets user password using valid, unexpired token
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || typeof token !== "string" || !token.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token is required",
+      });
+    }
+
+    if (!newPassword || typeof newPassword !== "string" || !isValidPassword(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 8 characters long",
+      });
+    }
+
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(token.trim())
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetTokenHash: tokenHash,
+      passwordResetExpiresAt: { $gt: new Date() },
+      status: "active",
+    }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Password reset link is invalid or has expired",
+      });
+    }
+
+    // Hash new password and clear reset fields
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetExpiresAt = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully. You can now log in.",
+    });
+  } catch (err) {
+    console.error("resetPassword error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   signup,
   login,
   getMe,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  resetPassword,
 };
