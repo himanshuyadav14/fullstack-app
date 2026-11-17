@@ -88,6 +88,7 @@ const TeamsPage = () => {
             const teamProjects = projects.filter(
               (p) => p.team?._id === t._id || p.team === t._id
             );
+            const memberCount = t.memberCount ?? t.members?.length ?? 0;
 
             return (
               <div
@@ -100,7 +101,7 @@ const TeamsPage = () => {
                       {t.name}
                     </h4>
                     <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                      {t.members?.length || 0} members
+                      {memberCount} {memberCount === 1 ? "member" : "members"}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mb-3">
@@ -132,13 +133,43 @@ const TeamsPage = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Team Members Avatar Stack */}
+                  {Array.isArray(t.members) && t.members.length > 0 && (
+                    <div className="flex items-center gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                        Squad Members:
+                      </span>
+                      <div className="flex -space-x-1.5 overflow-hidden">
+                        {t.members.slice(0, 5).map((m) => {
+                          const mName = m?.name || (typeof m === "string" ? "User" : "Member");
+                          return (
+                            <div
+                              key={m?._id || m}
+                              title={mName}
+                              className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-800 dark:text-zinc-200 shadow-2xs"
+                            >
+                              {mName.charAt(0).toUpperCase()}
+                            </div>
+                          );
+                        })}
+                        {t.members.length > 5 && (
+                          <div className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[9px] font-medium text-zinc-500">
+                            +{t.members.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {t.lead && (
-                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
-                    Team Lead:{" "}
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                      {t.lead.name}
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+                    <span>
+                      Team Lead:{" "}
+                      <strong className="text-zinc-800 dark:text-zinc-200 font-semibold">
+                        {t.lead.name}
+                      </strong>
                     </span>
                   </div>
                 )}

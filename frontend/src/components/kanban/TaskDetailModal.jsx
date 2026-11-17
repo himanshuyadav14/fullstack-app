@@ -340,7 +340,7 @@ const TaskDetailModal = ({
         {/* Discussion / Comments */}
         <div className="pt-4 border-t border-slate-200 dark:border-zinc-800">
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-2">
-            Comments & Discussion
+            Comments & Discussion ({comments.length})
           </div>
 
           <div className="max-h-56 overflow-y-auto space-y-2.5 mb-3 pr-1">

@@ -221,6 +221,7 @@ const getTeams = async (req, res) => {
     const [teams, total] = await Promise.all([
       Team.find(filter)
         .populate("lead", "name email avatar")
+        .populate("members", "name email avatar")
         .populate("createdBy", "name email")
         .select("-__v")
         .sort({ createdAt: -1 })
@@ -234,7 +235,8 @@ const getTeams = async (req, res) => {
       name: team.name,
       description: team.description,
       lead: team.lead,
-      memberCount: team.members.length,
+      members: team.members || [],
+      memberCount: team.members ? team.members.length : 0,
       createdBy: team.createdBy,
       createdAt: team.createdAt,
       updatedAt: team.updatedAt,

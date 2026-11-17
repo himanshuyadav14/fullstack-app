@@ -67,8 +67,8 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
         </div>
       )}
 
-      {/* Badges Row: Target Date & Attachments */}
-      {(formattedDueDate || task.attachments?.length > 0) && (
+      {/* Badges Row: Target Date, Attachments & Comments */}
+      {(formattedDueDate || task.attachments?.length > 0 || (task.commentsCount > 0 || task.comments?.length > 0)) && (
         <div className="flex items-center gap-2 pt-0.5">
           {formattedDueDate && (
             <span
@@ -86,11 +86,26 @@ const TaskCard = ({ task, onMove, moveLabel, onClick }) => {
           )}
 
           {task.attachments?.length > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+            <span
+              className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400"
+              title={`${task.attachments.length} attachments`}
+            >
               <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
               <span>{task.attachments.length}</span>
+            </span>
+          )}
+
+          {(task.commentsCount > 0 || task.comments?.length > 0) && (
+            <span
+              className="flex items-center gap-1 text-[10px] text-zinc-500 dark:text-zinc-400"
+              title={`${task.commentsCount || task.comments?.length || 0} comments`}
+            >
+              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>{task.commentsCount || task.comments?.length || 0}</span>
             </span>
           )}
         </div>

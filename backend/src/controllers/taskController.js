@@ -3,6 +3,7 @@ const Task = require("../models/Task");
 const Project = require("../models/Project");
 const Team = require("../models/Team");
 const Membership = require("../models/Membership");
+const Comment = require("../models/Comment");
 const {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -318,13 +319,33 @@ const getOrganizationTasks = async (req, res) => {
       Task.countDocuments(filter),
     ]);
 
+    // Attach commentsCount
+    const taskIds = tasks.map((t) => t._id);
+    const commentCounts = taskIds.length > 0
+      ? await Comment.aggregate([
+          { $match: { task: { $in: taskIds } } },
+          { $group: { _id: "$task", count: { $sum: 1 } } },
+        ])
+      : [];
+
+    const commentCountMap = {};
+    commentCounts.forEach((c) => {
+      commentCountMap[c._id.toString()] = c.count;
+    });
+
+    const tasksWithComments = tasks.map((t) => {
+      const obj = t.toObject ? t.toObject() : { ...t };
+      obj.commentsCount = commentCountMap[t._id.toString()] || 0;
+      return obj;
+    });
+
     return res.status(200).json({
       success: true,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
-      data: tasks,
+      data: tasksWithComments,
     });
   } catch (error) {
     console.error("getOrganizationTasks Error:", error);
@@ -372,6 +393,26 @@ const getProjectKanbanTasks = async (req, res) => {
       .populate("team", "name")
       .sort({ status: 1, order: 1, createdAt: -1 });
 
+    // Aggregate comment counts for fetched tasks
+    const taskIds = tasks.map((t) => t._id);
+    const commentCounts = taskIds.length > 0
+      ? await Comment.aggregate([
+          { $match: { task: { $in: taskIds } } },
+          { $group: { _id: "$task", count: { $sum: 1 } } },
+        ])
+      : [];
+
+    const commentCountMap = {};
+    commentCounts.forEach((c) => {
+      commentCountMap[c._id.toString()] = c.count;
+    });
+
+    const tasksWithMeta = tasks.map((t) => {
+      const obj = t.toObject ? t.toObject() : { ...t };
+      obj.commentsCount = commentCountMap[t._id.toString()] || 0;
+      return obj;
+    });
+
     // Format tasks grouped by Kanban columns
     const columns = {
       todo: [],
@@ -381,7 +422,7 @@ const getProjectKanbanTasks = async (req, res) => {
       cancelled: [],
     };
 
-    for (const task of tasks) {
+    for (const task of tasksWithMeta) {
       if (columns[task.status]) {
         columns[task.status].push(task);
       }
@@ -394,10 +435,10 @@ const getProjectKanbanTasks = async (req, res) => {
         name: project.name,
         key: project.key,
       },
-      total: tasks.length,
+      total: tasksWithMeta.length,
       columns,
       data: columns,
-      tasks,
+      tasks: tasksWithMeta,
     });
   } catch (error) {
     console.error("getProjectKanbanTasks Error:", error);
