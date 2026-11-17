@@ -196,24 +196,54 @@ const inviteMember = async (req, res) => {
  * Accepts an invitation using atomic conditional update and transaction
  */
 const acceptInvitation = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token || typeof token !== "string" || !token.trim()) {
+    return res.status(400).json({ success: false, message: "Valid invitation token is required" });
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
+  return acceptInvitationMatching(req, res, { tokenHash });
+};
+
+/**
+ * 2b. POST /api/invitations/:invitationId/accept
+ * Accepts from the in-app pending list. Only matches invitations addressed to the
+ * caller's own email, so it grants nothing beyond what the emailed token would.
+ */
+const acceptInvitationById = async (req, res) => {
+  const filter = await buildOwnInvitationFilter(req, res);
+  if (!filter) return;
+  return acceptInvitationMatching(req, res, filter);
+};
+
+// Resolves { _id, email } for an invitation id scoped to the caller's email,
+// or sends the error response and returns null.
+const buildOwnInvitationFilter = async (req, res) => {
+  const { invitationId } = req.params;
+  if (!mongoose.isValidObjectId(invitationId)) {
+    res.status(400).json({ success: false, message: "Invalid invitation ID" });
+    return null;
+  }
+  const currentUser = await User.findById(req.user.id).select("email");
+  if (!currentUser) {
+    res.status(404).json({ success: false, message: "User not found" });
+    return null;
+  }
+  return { _id: invitationId, email: currentUser.email };
+};
+
+const acceptInvitationMatching = async (req, res, invitationFilter) => {
   let session;
 
   try {
-    const { token } = req.body;
-
-    if (!token || typeof token !== "string" || !token.trim()) {
-      return res.status(400).json({ success: false, message: "Valid invitation token is required" });
-    }
-
-    const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
-
     session = await mongoose.startSession();
     session.startTransaction();
 
     // Atomic Conditional State Transition
     const invitation = await Invitation.findOneAndUpdate(
       {
-        tokenHash,
+        ...invitationFilter,
         status: "pending",
         expiresAt: { $gt: new Date() },
       },
@@ -339,17 +369,30 @@ const acceptInvitation = async (req, res) => {
  * Rejects an invitation atomically (No membership created)
  */
 const rejectInvitation = async (req, res) => {
+  const { token } = req.body;
+
+  if (!token || typeof token !== "string" || !token.trim()) {
+    return res.status(400).json({ success: false, message: "Valid token is required" });
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
+  return rejectInvitationMatching(req, res, { tokenHash });
+};
+
+/**
+ * 3b. POST /api/invitations/:invitationId/reject
+ * Declines from the in-app pending list (caller's own email only)
+ */
+const rejectInvitationById = async (req, res) => {
+  const filter = await buildOwnInvitationFilter(req, res);
+  if (!filter) return;
+  return rejectInvitationMatching(req, res, filter);
+};
+
+const rejectInvitationMatching = async (req, res, invitationFilter) => {
   try {
-    const { token } = req.body;
-
-    if (!token || typeof token !== "string" || !token.trim()) {
-      return res.status(400).json({ success: false, message: "Valid token is required" });
-    }
-
-    const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
-
     // Check if invitation exists and handle expiry explicitly
-    const existingInvitation = await Invitation.findOne({ tokenHash });
+    const existingInvitation = await Invitation.findOne(invitationFilter);
     if (!existingInvitation) {
       return res.status(404).json({
         success: false,
@@ -376,7 +419,7 @@ const rejectInvitation = async (req, res) => {
     // Atomic conditional rejection
     const invitation = await Invitation.findOneAndUpdate(
       {
-        tokenHash,
+        ...invitationFilter,
         status: "pending",
         expiresAt: { $gt: new Date() },
       },
@@ -567,7 +610,9 @@ const revokeInvitation = async (req, res) => {
 module.exports = {
   inviteMember,
   acceptInvitation,
+  acceptInvitationById,
   rejectInvitation,
+  rejectInvitationById,
   getMyInvitations,
   getOrganizationInvitations,
   revokeInvitation,

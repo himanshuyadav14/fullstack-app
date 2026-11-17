@@ -202,6 +202,7 @@ const verifyEmail = async (req, res) => {
           name: user.name,
           email: user.email,
           isEmailVerified: true,
+          avatar: user.avatar || null,
         },
       });
     }
@@ -229,6 +230,7 @@ const verifyEmail = async (req, res) => {
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
+        avatar: user.avatar || null,
       },
     });
   } catch (err) {
@@ -386,6 +388,7 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
+        avatar: user.avatar || null,
         status: user.status,
       },
     });
@@ -428,6 +431,7 @@ const getMe = async (req, res) => {
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
+        avatar: user.avatar || null,
         status: user.status,
         createdAt: user.createdAt,
       },

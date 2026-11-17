@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Team = require("../models/Team");
+const Project = require("../models/Project");
 const Membership = require("../models/Membership");
 const { createNotification } = require("../services/notificationService");
 
@@ -752,6 +753,18 @@ const deleteTeam = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Team not found in this organization",
+      });
+    }
+
+    // Projects require a team, so deleting one that still owns projects would orphan them
+    const projectCount = await Project.countDocuments({
+      team: team._id,
+      organization: req.organization._id,
+    });
+    if (projectCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Team "${team.name}" still owns ${projectCount} project(s). Move them to another team or delete them first.`,
       });
     }
 

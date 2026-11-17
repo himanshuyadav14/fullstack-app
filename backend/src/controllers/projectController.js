@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Project = require("../models/Project");
 const Team = require("../models/Team");
+const Task = require("../models/Task");
+const Comment = require("../models/Comment");
 const Membership = require("../models/Membership");
 
 /**
@@ -863,6 +865,17 @@ const deleteProject = async (req, res) => {
         success: false,
         message: "Project not found in this organization",
       });
+    }
+
+    // Remove the project's tasks and their comments too, so nothing is left orphaned
+    const taskIds = await Task.find({
+      project: project._id,
+      organization: req.organization._id,
+    }).distinct("_id");
+
+    if (taskIds.length > 0) {
+      await Comment.deleteMany({ task: { $in: taskIds }, organization: req.organization._id });
+      await Task.deleteMany({ _id: { $in: taskIds } });
     }
 
     // Tenant-scoped deletion

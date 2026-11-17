@@ -864,6 +864,7 @@ const deleteTask = async (req, res) => {
       });
     }
 
+    await Comment.deleteMany({ task: task._id, organization: req.organization._id });
     await Task.deleteOne({
       _id: task._id,
       organization: req.organization._id,
