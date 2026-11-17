@@ -12,7 +12,10 @@ const {
 } = require("../controllers/invitationController");
 
 const {
+  getPermissionsList,
   getOrganizationRoles,
+  createOrganizationRole,
+  deleteOrganizationRole,
   getOrganizationMembers,
   updateMemberRole,
   removeMember,
@@ -42,7 +45,10 @@ router.post("/", createMyOrganization);
 router.get("/:orgId", getOrganizationById);
 
 // Member & Role Management
+router.get("/:orgId/roles/permissions", requireOrgPermission("role:read"), getPermissionsList);
 router.get("/:orgId/roles", requireOrgPermission("member:read"), getOrganizationRoles);
+router.post("/:orgId/roles", requireOrgPermission("role:create"), createOrganizationRole);
+router.delete("/:orgId/roles/:roleId", requireOrgPermission("role:delete"), deleteOrganizationRole);
 router.get("/:orgId/members", requireOrgPermission("member:read"), getOrganizationMembers);
 router.patch("/:orgId/members/:memberId/role", requireOrgPermission("member:update"), updateMemberRole);
 router.delete("/:orgId/members/:memberId", requireOrgPermission("member:remove"), removeMember);

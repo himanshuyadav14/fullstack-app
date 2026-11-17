@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useOrgStore } from "../stores/orgStore";
 import { useAuthStore } from "../stores/authStore";
 import InviteMemberModal from "../components/modals/InviteMemberModal";
+import CreateRoleModal from "../components/modals/CreateRoleModal";
 import CustomSelect from "../components/common/CustomSelect";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
@@ -17,6 +18,7 @@ const MembersPage = () => {
   const [notification, setNotification] = useState("");
   const [search, setSearch] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
 
   const loadMembers = async () => {
     if (!currentOrg?._id) return;
@@ -155,13 +157,24 @@ const MembersPage = () => {
 
         <div className="flex items-center gap-2.5">
           {isOwnerOrAdmin && (
-            <button
-              type="button"
-              onClick={() => setShowInviteModal(true)}
-              className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
-            >
-              + Invite Member
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setShowCreateRoleModal(true)}
+                className="py-2 px-3.5 border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium rounded-lg text-sm transition-colors cursor-pointer"
+                title="Create a new custom role with custom permissions"
+              >
+                + Create Role
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowInviteModal(true)}
+                className="py-2 px-4 bg-zinc-950 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white font-medium rounded-lg text-sm transition-colors shadow-2xs cursor-pointer"
+              >
+                + Invite Member
+              </button>
+            </>
           )}
 
           {currentRole !== "owner" && (
@@ -317,6 +330,19 @@ const MembersPage = () => {
           orgId={currentOrg?._id}
           onClose={() => setShowInviteModal(false)}
           onMemberInvited={loadMembers}
+        />
+      )}
+
+      {/* Create Custom Role Modal */}
+      {showCreateRoleModal && (
+        <CreateRoleModal
+          orgId={currentOrg?._id}
+          onClose={() => setShowCreateRoleModal(false)}
+          onRoleCreated={(newRole) => {
+            loadRoles();
+            setNotification(`Custom role "${newRole.name?.toUpperCase()}" created successfully!`);
+            setTimeout(() => setNotification(""), 4000);
+          }}
         />
       )}
     </div>

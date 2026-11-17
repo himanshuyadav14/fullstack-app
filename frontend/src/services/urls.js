@@ -29,6 +29,9 @@ export const ENDPOINTS = {
     CREATE: "/organizations",
     GET_BY_ID: (orgId) => `/organizations/${orgId}`,
     ROLES: (orgId) => `/organizations/${orgId}/roles`,
+    PERMISSIONS: (orgId) => `/organizations/${orgId}/roles/permissions`,
+    CREATE_ROLE: (orgId) => `/organizations/${orgId}/roles`,
+    DELETE_ROLE: (orgId, roleId) => `/organizations/${orgId}/roles/${roleId}`,
     MEMBERS: (orgId) => `/organizations/${orgId}/members`,
     UPDATE_MEMBER_ROLE: (orgId, memberId) =>
       `/organizations/${orgId}/members/${memberId}/role`,

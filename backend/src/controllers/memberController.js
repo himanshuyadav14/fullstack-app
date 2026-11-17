@@ -3,10 +3,22 @@ const Membership = require("../models/Membership");
 const Role = require("../models/Role");
 const Organization = require("../models/Organization");
 const User = require("../models/User");
+const PERMISSIONS = require("../constants/permissions");
 const { createNotification } = require("../services/notificationService");
 
 /**
- * 0. GET /api/organizations/:orgId/roles
+ * 0a. GET /api/organizations/:orgId/roles/permissions
+ * Returns all system permissions for role builder UI
+ */
+const getPermissionsList = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    data: Object.values(PERMISSIONS),
+  });
+};
+
+/**
+ * 0b. GET /api/organizations/:orgId/roles
  * Lists all available roles within the organization
  */
 const getOrganizationRoles = async (req, res) => {
@@ -22,6 +34,120 @@ const getOrganizationRoles = async (req, res) => {
     });
   } catch (error) {
     console.error("getOrganizationRoles Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+/**
+ * 0c. POST /api/organizations/:orgId/roles
+ * Creates a new custom role scoped to this organization
+ */
+const createOrganizationRole = async (req, res) => {
+  try {
+    const { name, description, permissions } = req.body;
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ success: false, message: "Role name is required" });
+    }
+
+    const normalizedName = name.trim().toLowerCase();
+    const reservedNames = ["owner", "admin", "manager", "member"];
+    if (reservedNames.includes(normalizedName)) {
+      return res.status(400).json({
+        success: false,
+        message: `'${normalizedName}' is a reserved system role name`,
+      });
+    }
+
+    // Check if role name already exists in this organization
+    const existing = await Role.findOne({
+      organization: req.organization._id,
+      name: normalizedName,
+    });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: `Role '${normalizedName}' already exists in this organization`,
+      });
+    }
+
+    // Validate permissions array
+    const allowed = Object.values(PERMISSIONS);
+    const validPermissions = Array.isArray(permissions)
+      ? permissions.filter((p) => allowed.includes(p))
+      : [];
+
+    // Privilege check: Non-owners cannot grant permissions exceeding their own
+    if (req.orgRole.name !== "owner") {
+      const myPermissions = req.orgRole.permissions || [];
+      const exceeding = validPermissions.some((p) => !myPermissions.includes(p));
+      if (exceeding) {
+        return res.status(403).json({
+          success: false,
+          message: "Cannot grant permissions exceeding your own authority",
+        });
+      }
+    }
+
+    const newRole = await Role.create({
+      name: normalizedName,
+      description: description?.trim() || "",
+      organization: req.organization._id,
+      isSystemRole: false,
+      permissions: [...new Set(validPermissions)],
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Role '${newRole.name}' created successfully`,
+      data: newRole,
+    });
+  } catch (error) {
+    console.error("createOrganizationRole Error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+/**
+ * 0d. DELETE /api/organizations/:orgId/roles/:roleId
+ * Deletes a custom role if no active members are assigned to it
+ */
+const deleteOrganizationRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const role = await Role.findOne({
+      _id: roleId,
+      organization: req.organization._id,
+    });
+
+    if (!role) {
+      return res.status(404).json({ success: false, message: "Role not found in this organization" });
+    }
+
+    if (role.isSystemRole) {
+      return res.status(403).json({ success: false, message: "System roles cannot be deleted" });
+    }
+
+    // Check if active members have this role
+    const assignedCount = await Membership.countDocuments({
+      organization: req.organization._id,
+      role: role._id,
+      status: "active",
+    });
+
+    if (assignedCount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete role '${role.name}': ${assignedCount} active member(s) are currently assigned to this role`,
+      });
+    }
+
+    await role.deleteOne();
+    return res.status(200).json({
+      success: true,
+      message: `Role '${role.name}' deleted successfully`,
+    });
+  } catch (error) {
+    console.error("deleteOrganizationRole Error:", error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -425,7 +551,10 @@ const transferOwnership = async (req, res) => {
 };
 
 module.exports = {
+  getPermissionsList,
   getOrganizationRoles,
+  createOrganizationRole,
+  deleteOrganizationRole,
   getOrganizationMembers,
   updateMemberRole,
   removeMember,
