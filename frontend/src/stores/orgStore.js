@@ -11,11 +11,14 @@ const getSavedOrg = () => {
   }
 };
 
+const savedOrg = getSavedOrg();
+
 export const useOrgStore = create((set, get) => ({
   userOrgs: [],
-  currentOrg: getSavedOrg(),
-  currentRole: null,
+  currentOrg: savedOrg,
+  currentRole: savedOrg?.role?.name || savedOrg?.role || null,
   loading: false,
+  initialLoaded: false,
   error: null,
 
   /**
@@ -27,17 +30,25 @@ export const useOrgStore = create((set, get) => ({
       const res = await api.get(ENDPOINTS.ORGANIZATIONS.MY);
       const orgs = res.data.data || res.data.organizations || [];
 
-      set({ userOrgs: orgs, loading: false });
+      set({ userOrgs: orgs, loading: false, initialLoaded: true });
+
+      // If user has zero organizations, clear any stale selected org
+      if (orgs.length === 0) {
+        get().setCurrentOrg(null);
+        return { success: true, data: [] };
+      }
 
       // If no currentOrg is selected, default to the first organization
       const current = get().currentOrg;
-      if (!current && orgs.length > 0) {
+      if (!current) {
         get().setCurrentOrg(orgs[0]);
-      } else if (current) {
+      } else {
         // Sync currentOrg with fresh data
         const freshCurrent = orgs.find((o) => o._id === current._id);
         if (freshCurrent) {
           get().setCurrentOrg(freshCurrent);
+        } else {
+          get().setCurrentOrg(orgs[0]);
         }
       }
 
@@ -45,7 +56,7 @@ export const useOrgStore = create((set, get) => ({
     } catch (err) {
       const message =
         err.response?.data?.message || "Failed to load organizations.";
-      set({ loading: false, error: message });
+      set({ loading: false, error: message, initialLoaded: true });
       return { success: false, message };
     }
   },
@@ -104,6 +115,7 @@ export const useOrgStore = create((set, get) => ({
       currentOrg: null,
       currentRole: null,
       error: null,
+      initialLoaded: false,
     });
   },
 }));

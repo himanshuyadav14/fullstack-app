@@ -10,7 +10,7 @@ import { connectSocket, disconnectSocket } from "../services/socket";
 
 const AppLayout = () => {
   const { token } = useAuthStore();
-  const { userOrgs, currentOrg, fetchMyOrgs, loading: orgLoading } = useOrgStore();
+  const { userOrgs, currentOrg, fetchMyOrgs, initialLoaded } = useOrgStore();
   const { fetchUnreadCount, addLiveNotification } = useNotificationStore();
   const [showCreateOrg, setShowCreateOrg] = useState(false);
 
@@ -45,9 +45,13 @@ const AppLayout = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col">
       <Navbar onOpenCreateOrg={() => setShowCreateOrg(true)} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
-        {/* If user has no workspaces */}
-        {!orgLoading && userOrgs.length === 0 ? (
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col">
+        {!initialLoaded ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-32 text-center">
+            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Loading workspace...</p>
+          </div>
+        ) : userOrgs.length === 0 ? (
           <div className="max-w-lg mx-auto my-16 text-center p-8 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl">
             <div className="flex justify-center mb-3">
               <OrbitLogo className="w-12 h-12" />

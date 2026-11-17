@@ -8,7 +8,7 @@ import { useThemeStore } from "../../stores/themeStore";
 const Navbar = ({ onOpenCreateOrg }) => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { userOrgs, currentOrg, currentRole, setCurrentOrg } = useOrgStore();
+  const { userOrgs, currentOrg, currentRole, setCurrentOrg, clearOrg } = useOrgStore();
   const { unreadCount } = useNotificationStore();
   const { theme, toggleTheme } = useThemeStore();
 
@@ -101,15 +101,24 @@ const Navbar = ({ onOpenCreateOrg }) => {
         {/* User Badge */}
         <div className="text-right text-xs">
           <div className="font-semibold">{user?.name}</div>
-          <div className="text-[11px] text-slate-500 dark:text-zinc-400">
-            Role: <span className="text-blue-600 dark:text-blue-400 font-medium">{currentRole || "Member"}</span>
-          </div>
+          {currentOrg && currentRole ? (
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400">
+              Role: <span className="text-blue-600 dark:text-blue-400 font-medium capitalize">{currentRole}</span>
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-400 dark:text-zinc-500">
+              No Workspace
+            </div>
+          )}
         </div>
 
         {/* Logout */}
         <button
           type="button"
-          onClick={logout}
+          onClick={() => {
+            clearOrg();
+            logout();
+          }}
           className="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50/60 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 text-xs font-medium transition-colors cursor-pointer"
         >
           Logout
