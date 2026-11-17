@@ -20,7 +20,8 @@ const sendInvitationEmail = async ({
   invitationToken,
 }) => {
   try {
-    const acceptUrl = `${process.env.CLIENT_URL}/${invitationToken}/accept`;
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    const acceptUrl = `${clientUrl}/invitations/accept?token=${encodeURIComponent(invitationToken)}`;
 
     const mailOptions = {
       from: `"OrbitHQ" <${process.env.EMAIL_USER}>`,

@@ -47,10 +47,12 @@ export const useAuthStore = create((set, get) => ({
   /**
    * Verify 6-digit OTP
    */
-  verifyOtp: async ({ email, otp }) => {
+  verifyOtp: async ({ email, otp, token: verificationToken }) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { email, otp });
+      // Email link carries a token; the code form sends email + 6-digit OTP
+      const payload = verificationToken ? { token: verificationToken } : { email, otp };
+      const res = await api.post(ENDPOINTS.AUTH.VERIFY_EMAIL, payload);
       const { token, user } = res.data;
 
       if (token) {

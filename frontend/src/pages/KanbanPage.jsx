@@ -8,7 +8,46 @@ import CreateProjectModal from "../components/modals/CreateProjectModal";
 import CreateTaskModal from "../components/modals/CreateTaskModal";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
-import { getSocket } from "../services/socket";
+import { joinRoomWhileConnected, useSocket } from "../services/socket";
+
+// The board shows 3 columns; backend has 5 statuses. Cancelled tasks are hidden.
+const COLUMN_FOR_STATUS = {
+  todo: "todo",
+  in_progress: "in_progress",
+  in_review: "in_progress",
+  done: "done",
+};
+
+const isSameProject = (task, projectId) =>
+  (task.project?._id || task.project) === projectId;
+
+// Removes a task from whichever column holds it, then re-inserts it at the top of
+// the column for its new status. Returns { cols, found }.
+const moveTaskInColumns = (cols, taskId, status) => {
+  let movedTask = null;
+  const next = {};
+  for (const [key, list] of Object.entries(cols)) {
+    next[key] = list.filter((t) => {
+      if (t._id === taskId) {
+        movedTask = { ...t, status };
+        return false;
+      }
+      return true;
+    });
+  }
+  const target = COLUMN_FOR_STATUS[status];
+  if (movedTask && target) next[target].unshift(movedTask);
+  return next;
+};
+
+// Adds a task once: the creator receives it from both the create-modal callback
+// and the socket broadcast, so skip it if it's already on the board.
+const addTaskToColumns = (cols, task) => {
+  const exists = Object.values(cols).some((list) => list.some((t) => t._id === task._id));
+  const target = COLUMN_FOR_STATUS[task.status];
+  if (exists || !target) return cols;
+  return { ...cols, [target]: [task, ...cols[target]] };
+};
 
 const KanbanPage = () => {
   const { currentOrg } = useOrgStore();
@@ -160,54 +199,28 @@ const KanbanPage = () => {
   }, [selectedProjectId, currentOrg?._id]);
 
   // 3. Socket.IO Real-Time Sync
+  // Depends on the socket instance itself, so it (re)subscribes once AppLayout has
+  // connected (child effects run before the parent's on first mount) and whenever
+  // the socket is replaced.
+  const socket = useSocket();
   useEffect(() => {
-    const socket = getSocket();
     if (!socket || !selectedProjectId) return;
 
-    socket.emit("join:project", selectedProjectId);
+    const leaveProjectRoom = joinRoomWhileConnected(
+      socket,
+      "join:project",
+      selectedProjectId,
+      "leave:project",
+    );
 
     const onTaskCreated = (newTask) => {
-      if (newTask.project === selectedProjectId || newTask.project?._id === selectedProjectId) {
-        setTasks((prev) => ({
-          ...prev,
-          todo: [newTask, ...prev.todo],
-        }));
+      if (isSameProject(newTask, selectedProjectId)) {
+        setTasks((prev) => addTaskToColumns(prev, newTask));
       }
     };
 
     const onStatusChanged = ({ taskId, status }) => {
-      setTasks((prev) => {
-        let movedTask = null;
-        const newCols = {
-          todo: prev.todo.filter((t) => {
-            if (t._id === taskId) {
-              movedTask = { ...t, status };
-              return false;
-            }
-            return true;
-          }),
-          in_progress: prev.in_progress.filter((t) => {
-            if (t._id === taskId) {
-              movedTask = { ...t, status };
-              return false;
-            }
-            return true;
-          }),
-          done: prev.done.filter((t) => {
-            if (t._id === taskId) {
-              movedTask = { ...t, status };
-              return false;
-            }
-            return true;
-          }),
-        };
-
-        if (movedTask && newCols[status]) {
-          newCols[status].unshift(movedTask);
-        }
-
-        return newCols;
-      });
+      setTasks((prev) => moveTaskInColumns(prev, taskId, status));
     };
 
     const onTaskDeleted = ({ taskId }) => {
@@ -223,48 +236,17 @@ const KanbanPage = () => {
     socket.on("task:deleted", onTaskDeleted);
 
     return () => {
-      socket.emit("leave:project", selectedProjectId);
+      leaveProjectRoom();
       socket.off("task:created", onTaskCreated);
       socket.off("task:status_changed", onStatusChanged);
       socket.off("task:deleted", onTaskDeleted);
     };
-  }, [selectedProjectId]);
+  }, [socket, selectedProjectId]);
 
   // Move task status via API with optimistic update
   const handleMoveStatus = async (taskId, newStatus) => {
     // 1. Optimistic UI update across columns
-    setTasks((prev) => {
-      let movedTask = null;
-      const newCols = {
-        todo: prev.todo.filter((t) => {
-          if (t._id === taskId) {
-            movedTask = { ...t, status: newStatus };
-            return false;
-          }
-          return true;
-        }),
-        in_progress: prev.in_progress.filter((t) => {
-          if (t._id === taskId) {
-            movedTask = { ...t, status: newStatus };
-            return false;
-          }
-          return true;
-        }),
-        done: prev.done.filter((t) => {
-          if (t._id === taskId) {
-            movedTask = { ...t, status: newStatus };
-            return false;
-          }
-          return true;
-        }),
-      };
-
-      if (movedTask && newCols[newStatus]) {
-        newCols[newStatus].unshift(movedTask);
-      }
-
-      return newCols;
-    });
+    setTasks((prev) => moveTaskInColumns(prev, taskId, newStatus));
 
     // 2. Persist to API
     try {
@@ -495,10 +477,9 @@ const KanbanPage = () => {
           projects={displayedProjects.length > 0 ? displayedProjects : projects}
           onClose={() => setShowCreateTask(false)}
           onTaskCreated={(newTask) => {
-            setTasks((prev) => ({
-              ...prev,
-              todo: [newTask, ...prev.todo],
-            }));
+            if (isSameProject(newTask, selectedProjectId)) {
+              setTasks((prev) => addTaskToColumns(prev, newTask));
+            }
             toast.success(`Task "${newTask.taskKey}" created!`);
           }}
         />

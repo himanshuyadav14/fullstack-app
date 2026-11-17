@@ -1,14 +1,21 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import OrbitLogo from "../components/common/OrbitLogo";
 import CreateOrgModal from "../components/modals/CreateOrgModal";
 import { useAuthStore } from "../stores/authStore";
 import { useOrgStore } from "../stores/orgStore";
 import { useNotificationStore } from "../stores/notificationStore";
-import { connectSocket, disconnectSocket } from "../services/socket";
+import {
+  connectSocket,
+  disconnectSocket,
+  joinRoomWhileConnected,
+  useSocket,
+} from "../services/socket";
+import { PENDING_INVITE_KEY } from "../pages/AcceptInvitation";
 
 const AppLayout = () => {
+  const navigate = useNavigate();
   const { token } = useAuthStore();
   const { userOrgs, currentOrg, fetchMyOrgs, initialLoaded } = useOrgStore();
   const { fetchUnreadCount, addLiveNotification } = useNotificationStore();
@@ -20,26 +27,45 @@ const AppLayout = () => {
     fetchUnreadCount();
   }, []);
 
-  // 2. Real-time WebSocket connection
+  // 1b. Resume an invitation the user opened before signing in (one-shot)
+  useEffect(() => {
+    let pendingInvite = null;
+    try {
+      pendingInvite = localStorage.getItem(PENDING_INVITE_KEY);
+      localStorage.removeItem(PENDING_INVITE_KEY);
+    } catch {
+      // storage unavailable
+    }
+    if (pendingInvite) {
+      navigate(`/invitations/accept?token=${encodeURIComponent(pendingInvite)}`, { replace: true });
+    }
+  }, []);
+
+  // 2. Real-time WebSocket connection: one socket per login session.
+  // Not tied to the selected org, so switching workspaces doesn't tear it down.
   useEffect(() => {
     if (!token) return;
 
     const socket = connectSocket(token);
 
-    // Listen for live alerts
-    socket.on("notification:new", (newAlert) => {
-      console.log("🔔 Real-time alert received:", newAlert);
+    const onNotification = (newAlert) => {
       addLiveNotification(newAlert);
-    });
-
-    if (currentOrg?._id) {
-      socket.emit("join:org", currentOrg._id);
-    }
+    };
+    socket.on("notification:new", onNotification);
 
     return () => {
+      socket.off("notification:new", onNotification);
       disconnectSocket();
     };
-  }, [token, currentOrg?._id]);
+  }, [token]);
+
+  // 3. Organization room: follows the selected org and rejoins after reconnects
+  const socket = useSocket();
+  const orgId = currentOrg?._id;
+  useEffect(() => {
+    if (!socket || !orgId) return;
+    return joinRoomWhileConnected(socket, "join:org", orgId, "leave:org");
+  }, [socket, orgId]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col">

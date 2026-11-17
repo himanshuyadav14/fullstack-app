@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import AppLayout from "./layout/AppLayout";
 import Login from "./pages/Login";
@@ -12,12 +12,18 @@ import KanbanPage from "./pages/KanbanPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import MembersPage from "./pages/MembersPage";
 import TeamsPage from "./pages/TeamsPage";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import { useAuthStore } from "./stores/authStore";
 
 // Protected Route Guard: requires active session
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+const LegacyInviteRedirect = () => {
+  const { token } = useParams();
+  return <Navigate to={`/invitations/accept?token=${encodeURIComponent(token)}`} replace />;
 };
 
 // Public Route Guard: prevents logged-in users from seeing login/signup
@@ -95,6 +101,11 @@ const App = () => {
             </PublicRoute>
           }
         />
+
+        {/* Invitation link: works signed in or out, so no route guard */}
+        <Route path="/invitations/accept" element={<AcceptInvitation />} />
+        {/* Old email link format (/<token>/accept) from invitations sent before the fix */}
+        <Route path="/:token/accept" element={<LegacyInviteRedirect />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

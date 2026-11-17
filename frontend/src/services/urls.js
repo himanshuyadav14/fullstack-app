@@ -44,6 +44,13 @@ export const ENDPOINTS = {
     INVITATIONS: (orgId) => `/organizations/${orgId}/invitations`,
   },
 
+  // 3b. Invitations (invitee side)
+  INVITATIONS: {
+    MY: "/invitations/my",
+    ACCEPT: "/invitations/accept",
+    REJECT: "/invitations/reject",
+  },
+
   // 4. Teams
   TEAMS: {
     LIST_CREATE: (orgId) => `/organizations/${orgId}/teams`,
