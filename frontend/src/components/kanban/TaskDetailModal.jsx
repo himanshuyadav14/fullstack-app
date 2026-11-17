@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
 import { useOrgStore } from "../../stores/orgStore";
@@ -70,8 +71,9 @@ const TaskDetailModal = ({
       );
       setComments((prev) => [...prev, res.data.data]);
       setNewComment("");
+      toast.success("Comment posted");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to post comment");
+      toast.error(err.response?.data?.message || "Failed to post comment");
     } finally {
       setSubmittingComment(false);
     }
@@ -82,7 +84,7 @@ const TaskDetailModal = ({
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size exceeds 5MB limit");
+      toast.error("File size exceeds 5MB limit");
       return;
     }
 
@@ -98,8 +100,9 @@ const TaskDetailModal = ({
       );
       setAttachments(res.data.data || []);
       if (onTaskUpdated) onTaskUpdated({ ...task, attachments: res.data.data });
+      toast.success("Attachment uploaded successfully");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to upload file");
+      toast.error(err.response?.data?.message || "Failed to upload file");
     } finally {
       setUploadingFile(false);
     }
@@ -114,8 +117,9 @@ const TaskDetailModal = ({
       );
       setAttachments(res.data.data || []);
       if (onTaskUpdated) onTaskUpdated({ ...task, attachments: res.data.data });
+      toast.success("Attachment removed");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete attachment");
+      toast.error(err.response?.data?.message || "Failed to delete attachment");
     }
   };
 
@@ -129,8 +133,9 @@ const TaskDetailModal = ({
         assigneeId: newUserId || null,
       });
       if (onTaskUpdated) onTaskUpdated(res.data.data);
+      toast.success("Assignee updated");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update assignment");
+      toast.error(err.response?.data?.message || "Failed to update assignment");
     } finally {
       setAssigning(false);
     }
@@ -145,8 +150,9 @@ const TaskDetailModal = ({
         dueDate: val ? new Date(val).toISOString() : null,
       });
       if (onTaskUpdated) onTaskUpdated(res.data.data);
+      toast.success("Target due date updated");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update target date");
+      toast.error(err.response?.data?.message || "Failed to update target date");
     } finally {
       setUpdatingDueDate(false);
     }
@@ -159,9 +165,10 @@ const TaskDetailModal = ({
     try {
       await api.delete(ENDPOINTS.TASKS.DELETE(orgId, task._id));
       if (onTaskDeleted) onTaskDeleted(task._id);
+      toast.success(`Task ${task.taskKey} deleted`);
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete task");
+      toast.error(err.response?.data?.message || "Failed to delete task");
       setDeletingTask(false);
     }
   };

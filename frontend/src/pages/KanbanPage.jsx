@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useOrgStore } from "../stores/orgStore";
 import CustomSelect from "../components/common/CustomSelect";
 import KanbanColumn from "../components/kanban/KanbanColumn";
@@ -219,10 +220,16 @@ const KanbanPage = () => {
       await api.patch(ENDPOINTS.TASKS.UPDATE_STATUS(currentOrg._id, taskId), {
         status: newStatus,
       });
+      const statusLabels = {
+        todo: "To Do",
+        in_progress: "In Progress",
+        done: "Done",
+      };
+      toast.success(`Task moved to ${statusLabels[newStatus] || newStatus}`, { id: `status-${taskId}` });
     } catch (err) {
       console.error("Failed to update status, rolling back:", err);
       loadKanbanTasks(selectedProjectId);
-      alert(err.response?.data?.message || "Failed to update status");
+      toast.error(err.response?.data?.message || "Failed to update status");
     }
   };
 
@@ -401,6 +408,7 @@ const KanbanPage = () => {
             if (newProject.team?._id) {
               setSelectedTeamId(newProject.team._id);
             }
+            toast.success(`Project "${newProject.name}" created!`);
           }}
         />
       )}
@@ -416,6 +424,7 @@ const KanbanPage = () => {
               ...prev,
               todo: [newTask, ...prev.todo],
             }));
+            toast.success(`Task "${newTask.taskKey}" created!`);
           }}
         />
       )}

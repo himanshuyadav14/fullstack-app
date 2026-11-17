@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import AppLayout from "./layout/AppLayout";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -98,6 +99,36 @@ const App = () => {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Global Hot Toaster Notification Provider */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            background: "#18181b",
+            color: "#fafafa",
+            border: "1px solid rgba(255, 255, 255, 0.12)",
+            fontSize: "13px",
+            fontWeight: "500",
+            borderRadius: "12px",
+            padding: "10px 16px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2)",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#18181b",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#18181b",
+            },
+          },
+        }}
+      />
     </BrowserRouter>
   );
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
 import CreateTeamModal from "./CreateTeamModal";
@@ -61,7 +62,9 @@ const CreateProjectModal = ({ orgId, onClose, onProjectCreated }) => {
       }
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create project");
+      const msg = err.response?.data?.message || "Failed to create project";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

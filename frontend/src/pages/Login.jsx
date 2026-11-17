@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import validate from "../utils/validate";
 import { useAuthStore } from "../stores/authStore";
 import ThemeToggle from "../components/common/ThemeToggle";
@@ -32,9 +33,11 @@ const Login = () => {
 
     const res = await login(email, password);
     if (res.success) {
+      toast.success("Welcome back!");
       navigate("/");
     } else {
       setApiError(res.message);
+      toast.error(res.message || "Failed to sign in");
     }
   };
 

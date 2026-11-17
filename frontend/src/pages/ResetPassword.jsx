@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 import validate from "../utils/validate";
@@ -55,13 +56,15 @@ const ResetPassword = () => {
         setSuccessMessage(
           res.data.message || "Password has been reset successfully! Redirecting to login...",
         );
+        toast.success("Password reset successfully!");
         setTimeout(() => navigate("/login"), 2500);
       }
     } catch (err) {
-      setApiError(
+      const msg =
         err.response?.data?.message ||
-          "Failed to reset password. The token may be invalid or expired.",
-      );
+        "Failed to reset password. The token may be invalid or expired.";
+      setApiError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

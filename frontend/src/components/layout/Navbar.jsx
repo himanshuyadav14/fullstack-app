@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import OrbitLogo from "../common/OrbitLogo";
 import ThemeToggle from "../common/ThemeToggle";
 import CustomSelect from "../common/CustomSelect";
@@ -74,7 +75,10 @@ const Navbar = ({ onOpenCreateOrg }) => {
               value={currentOrg?._id || ""}
               onChange={(orgId) => {
                 const selected = userOrgs.find((o) => o._id === orgId);
-                if (selected) setCurrentOrg(selected);
+                if (selected) {
+                  setCurrentOrg(selected);
+                  toast.success(`Switched to "${selected.name}"`, { id: "workspace-switch" });
+                }
               }}
               options={userOrgs.map((org) => ({
                 value: org._id,
@@ -259,6 +263,7 @@ const Navbar = ({ onOpenCreateOrg }) => {
                   setIsUserMenuOpen(false);
                   clearOrg();
                   logout();
+                  toast.success("Logged out successfully");
                 }}
                 className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer text-left"
               >

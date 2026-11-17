@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
 import { useOrgStore } from "../../stores/orgStore";
@@ -89,12 +90,17 @@ const CreateOrgModal = ({ onClose }) => {
       });
 
       if (res.success) {
+        toast.success(`Workspace "${name.trim()}" created!`);
         onClose();
       } else {
-        setError(res.message || "Failed to create workspace.");
+        const msg = res.message || "Failed to create workspace.";
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err) {
-      setError("Something went wrong while creating workspace.");
+      const msg = "Something went wrong while creating workspace.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setUploading(false);
     }

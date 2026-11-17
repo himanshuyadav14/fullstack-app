@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useOrgStore } from "../stores/orgStore";
 import { useAuthStore } from "../stores/authStore";
 import InviteMemberModal from "../components/modals/InviteMemberModal";
@@ -54,7 +55,6 @@ const MembersPage = () => {
 
   const handleRoleChange = async (memberId, newRoleId, memberName) => {
     setUpdatingMemberId(memberId);
-    setNotification("");
     try {
       await api.patch(
         ENDPOINTS.ORGANIZATIONS.UPDATE_MEMBER_ROLE(currentOrg._id, memberId),
@@ -81,10 +81,9 @@ const MembersPage = () => {
         )
       );
 
-      setNotification(`Successfully updated ${memberName}'s role to ${roleName.toUpperCase()}`);
-      setTimeout(() => setNotification(""), 4000);
+      toast.success(`Updated ${memberName}'s role to ${roleName.toUpperCase()}`);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update member role");
+      toast.error(err.response?.data?.message || "Failed to update member role");
     } finally {
       setUpdatingMemberId(null);
     }
@@ -98,10 +97,9 @@ const MembersPage = () => {
     try {
       await api.delete(ENDPOINTS.ORGANIZATIONS.REMOVE_MEMBER(currentOrg._id, memberId));
       setMembers((prev) => prev.filter((m) => m._id !== memberId));
-      setNotification(`Removed ${memberName} from workspace`);
-      setTimeout(() => setNotification(""), 3000);
+      toast.success(`Removed ${memberName} from workspace`);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to remove member");
+      toast.error(err.response?.data?.message || "Failed to remove member");
     }
   };
 
@@ -117,10 +115,9 @@ const MembersPage = () => {
     try {
       await api.delete(ENDPOINTS.ORGANIZATIONS.DELETE_ROLE(currentOrg._id, roleId));
       setAvailableRoles((prev) => prev.filter((r) => r._id !== roleId));
-      setNotification(`Custom role "${roleName.toUpperCase()}" deleted successfully`);
-      setTimeout(() => setNotification(""), 3500);
+      toast.success(`Custom role "${roleName.toUpperCase()}" deleted`);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete role");
+      toast.error(err.response?.data?.message || "Failed to delete role");
     }
   };
 
@@ -131,10 +128,10 @@ const MembersPage = () => {
 
     try {
       await api.post(ENDPOINTS.ORGANIZATIONS.LEAVE(currentOrg._id));
-      alert("You have left the organization.");
+      toast.success("You have left the workspace.");
       fetchMyOrgs();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to leave organization");
+      toast.error(err.response?.data?.message || "Failed to leave organization");
     }
   };
 
@@ -212,25 +209,6 @@ const MembersPage = () => {
           )}
         </div>
       </div>
-
-      {/* Role Update Toast / Alert */}
-      {notification && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-900 text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 text-xs font-medium shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-emerald-400 dark:text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>{notification}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setNotification("")}
-            className="text-zinc-400 hover:text-zinc-100 dark:hover:text-zinc-900 text-xs p-1 cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* View Switcher Tabs */}
       <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl w-fit">
@@ -497,14 +475,12 @@ const MembersPage = () => {
           }}
           onRoleCreated={(newRole) => {
             loadRoles();
-            setNotification(`Custom role "${newRole.name?.toUpperCase()}" created successfully!`);
-            setTimeout(() => setNotification(""), 4000);
+            toast.success(`Custom role "${newRole.name?.toUpperCase()}" created!`);
           }}
           onRoleUpdated={(updatedRole) => {
             loadRoles();
             loadMembers();
-            setNotification(`Permissions for "${updatedRole.name?.toUpperCase()}" updated successfully!`);
-            setTimeout(() => setNotification(""), 4000);
+            toast.success(`Permissions for "${updatedRole.name?.toUpperCase()}" updated!`);
           }}
         />
       )}

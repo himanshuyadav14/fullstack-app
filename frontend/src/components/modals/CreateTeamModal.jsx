@@ -1,4 +1,5 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 import api from "../../services/api";
 import { ENDPOINTS } from "../../services/urls";
@@ -24,7 +25,9 @@ const CreateTeamModal = ({ orgId, onClose, onTeamCreated }) => {
       if (onTeamCreated) onTeamCreated(res.data.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create team");
+      const msg = err.response?.data?.message || "Failed to create team";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

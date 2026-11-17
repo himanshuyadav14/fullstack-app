@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import api from "../services/api";
 import { ENDPOINTS } from "../services/urls";
 import validate from "../utils/validate";
@@ -31,12 +32,14 @@ const ForgotPassword = () => {
       });
       if (res.data?.success) {
         setSubmitted(true);
+        toast.success("Password reset email sent!");
       }
     } catch (err) {
-      setApiError(
+      const msg =
         err.response?.data?.message ||
-          "Failed to process password reset request. Please try again.",
-      );
+        "Failed to process password reset request. Please try again.";
+      setApiError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

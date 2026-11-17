@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import validate from "../utils/validate";
 import { useAuthStore } from "../stores/authStore";
 import ThemeToggle from "../components/common/ThemeToggle";
@@ -78,8 +79,10 @@ const Signup = () => {
       setStep("verify");
       setCountdown(60);
       setCanResend(false);
+      toast.success("Verification code sent to your email!");
     } else {
       setApiError(res.message);
+      toast.error(res.message || "Failed to create account");
     }
   };
 
@@ -90,6 +93,7 @@ const Signup = () => {
 
     if (!otp.trim() || otp.trim().length !== 6) {
       setApiError("Please enter a valid 6-digit verification code");
+      toast.error("Please enter a valid 6-digit verification code");
       return;
     }
 
@@ -100,9 +104,11 @@ const Signup = () => {
 
     if (res.success) {
       // User is verified and JWT is saved! Auto-redirect to app home
+      toast.success("Account verified successfully! Welcome aboard.");
       navigate("/");
     } else {
       setApiError(res.message);
+      toast.error(res.message || "Invalid or expired OTP");
     }
   };
 
@@ -114,10 +120,12 @@ const Signup = () => {
     const res = await resendOtp(formData.email.trim());
     if (res.success) {
       setResendMessage("A new verification code has been dispatched to your email.");
+      toast.success("A new verification code has been sent!");
       setCanResend(false);
       setCountdown(60);
     } else {
       setApiError(res.message);
+      toast.error(res.message || "Failed to resend code");
     }
   };
 

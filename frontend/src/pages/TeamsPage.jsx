@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useOrgStore } from "../stores/orgStore";
 import CreateTeamModal from "../components/modals/CreateTeamModal";
 import api from "../services/api";
@@ -184,7 +185,10 @@ const TeamsPage = () => {
         <CreateTeamModal
           orgId={currentOrg?._id}
           onClose={() => setShowCreateModal(false)}
-          onTeamCreated={(newTeam) => setTeams((prev) => [...prev, newTeam])}
+          onTeamCreated={(newTeam) => {
+            setTeams((prev) => [...prev, newTeam]);
+            toast.success(`Team "${newTeam.name}" created!`);
+          }}
         />
       )}
     </div>

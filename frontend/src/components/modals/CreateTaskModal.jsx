@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import Modal from "../common/Modal";
 import CustomSelect from "../common/CustomSelect";
 import api from "../../services/api";
@@ -91,7 +92,9 @@ const CreateTaskModal = ({
       if (onTaskCreated) onTaskCreated(createdTask);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create task");
+      const msg = err.response?.data?.message || "Failed to create task";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -212,7 +215,7 @@ const CreateTaskModal = ({
                     const file = e.target.files[0];
                     if (file) {
                       if (file.size > 5 * 1024 * 1024) {
-                        alert("File size exceeds 5MB limit");
+                        toast.error("File size exceeds 5MB limit");
                         return;
                       }
                       setAttachmentFile(file);
