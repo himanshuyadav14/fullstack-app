@@ -14,9 +14,15 @@ const KanbanPage = () => {
   const { currentOrg } = useOrgStore();
 
   const [teams, setTeams] = useState([]);
-  const [selectedTeamId, setSelectedTeamId] = useState("");
+  const [selectedTeamId, setSelectedTeamId] = useState(() => {
+    const orgId = currentOrg?._id || localStorage.getItem("selectedOrgId");
+    return (orgId && localStorage.getItem(`selectedTeam_${orgId}`)) || "";
+  });
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    const orgId = currentOrg?._id || localStorage.getItem("selectedOrgId");
+    return (orgId && localStorage.getItem(`selectedProject_${orgId}`)) || "";
+  });
   const [tasks, setTasks] = useState({
     todo: [],
     in_progress: [],
@@ -45,11 +51,56 @@ const KanbanPage = () => {
       setTeams(fetchedTeams);
       setProjects(fetchedProjects);
 
-      if (fetchedProjects.length > 0 && !selectedProjectId) {
-        setSelectedProjectId(fetchedProjects[0]._id);
-        if (fetchedProjects[0].team?._id) {
-          setSelectedTeamId(fetchedProjects[0].team._id);
+      // Check saved selections for this org
+      const savedTeamId = localStorage.getItem(`selectedTeam_${currentOrg._id}`) || "";
+      const savedProjectId = localStorage.getItem(`selectedProject_${currentOrg._id}`) || "";
+
+      // Validate saved team
+      const isTeamValid = savedTeamId && fetchedTeams.some((t) => t._id === savedTeamId);
+      const activeTeamId = isTeamValid ? savedTeamId : "";
+      setSelectedTeamId(activeTeamId);
+      if (activeTeamId) {
+        localStorage.setItem(`selectedTeam_${currentOrg._id}`, activeTeamId);
+      } else {
+        localStorage.removeItem(`selectedTeam_${currentOrg._id}`);
+      }
+
+      // Filter projects according to active team
+      const eligibleProjects = activeTeamId
+        ? fetchedProjects.filter(
+            (p) => (p.team?._id || p.team) === activeTeamId
+          )
+        : fetchedProjects;
+
+      let targetProjectId = "";
+      // 1. Is savedProjectId valid in current team's projects?
+      if (savedProjectId && eligibleProjects.some((p) => p._id === savedProjectId)) {
+        targetProjectId = savedProjectId;
+      }
+      // 2. Or is savedProjectId valid in ANY project of this workspace?
+      else if (savedProjectId && fetchedProjects.some((p) => p._id === savedProjectId)) {
+        const foundProj = fetchedProjects.find((p) => p._id === savedProjectId);
+        targetProjectId = savedProjectId;
+        const projTeamId = foundProj.team?._id || foundProj.team;
+        if (projTeamId && projTeamId !== activeTeamId) {
+          setSelectedTeamId(projTeamId);
+          localStorage.setItem(`selectedTeam_${currentOrg._id}`, projTeamId);
         }
+      }
+      // 3. Fallback to first eligible project in current team
+      else if (eligibleProjects.length > 0) {
+        targetProjectId = eligibleProjects[0]._id;
+      }
+      // 4. Fallback to first project overall
+      else if (fetchedProjects.length > 0) {
+        targetProjectId = fetchedProjects[0]._id;
+      }
+
+      setSelectedProjectId(targetProjectId);
+      if (targetProjectId) {
+        localStorage.setItem(`selectedProject_${currentOrg._id}`, targetProjectId);
+      } else {
+        localStorage.removeItem(`selectedProject_${currentOrg._id}`);
       }
     } catch (err) {
       console.error("Failed to load workspace teams/projects:", err);
@@ -251,11 +302,24 @@ const KanbanPage = () => {
               value={selectedTeamId}
               onChange={(val) => {
                 setSelectedTeamId(val);
+                if (currentOrg?._id) {
+                  if (val) {
+                    localStorage.setItem(`selectedTeam_${currentOrg._id}`, val);
+                  } else {
+                    localStorage.removeItem(`selectedTeam_${currentOrg._id}`);
+                  }
+                }
                 const matching = val
-                  ? projects.filter((p) => p.team?._id === val || p.team === val)
+                  ? projects.filter((p) => (p.team?._id || p.team) === val)
                   : projects;
                 if (matching.length > 0) {
-                  setSelectedProjectId(matching[0]._id);
+                  const stillValid = matching.some((p) => p._id === selectedProjectId);
+                  if (!stillValid) {
+                    setSelectedProjectId(matching[0]._id);
+                    if (currentOrg?._id) {
+                      localStorage.setItem(`selectedProject_${currentOrg._id}`, matching[0]._id);
+                    }
+                  }
                 }
               }}
               options={[
@@ -277,7 +341,12 @@ const KanbanPage = () => {
               <CustomSelect
                 size="sm"
                 value={selectedProjectId}
-                onChange={(val) => setSelectedProjectId(val)}
+                onChange={(val) => {
+                  setSelectedProjectId(val);
+                  if (currentOrg?._id) {
+                    localStorage.setItem(`selectedProject_${currentOrg._id}`, val);
+                  }
+                }}
                 options={displayedProjects.map((p) => ({
                   value: p._id,
                   label: `${p.name} (${p.key})`,
@@ -405,8 +474,14 @@ const KanbanPage = () => {
           onProjectCreated={(newProject) => {
             setProjects((prev) => [newProject, ...prev]);
             setSelectedProjectId(newProject._id);
+            if (currentOrg?._id) {
+              localStorage.setItem(`selectedProject_${currentOrg._id}`, newProject._id);
+            }
             if (newProject.team?._id) {
               setSelectedTeamId(newProject.team._id);
+              if (currentOrg?._id) {
+                localStorage.setItem(`selectedTeam_${currentOrg._id}`, newProject.team._id);
+              }
             }
             toast.success(`Project "${newProject.name}" created!`);
           }}

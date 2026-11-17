@@ -50,18 +50,19 @@ export const useOrgStore = create((set, get) => ({
         return { success: true, data: [] };
       }
 
-      // If no currentOrg is selected, default to the first organization
-      const current = get().currentOrg;
-      if (!current) {
+      // Check if user previously selected an organization
+      const savedOrgId =
+        localStorage.getItem("selectedOrgId") || get().currentOrg?._id;
+
+      let matchedOrg = null;
+      if (savedOrgId) {
+        matchedOrg = orgs.find((o) => o._id === savedOrgId);
+      }
+
+      if (matchedOrg) {
+        get().setCurrentOrg(matchedOrg);
+      } else if (orgs.length > 0) {
         get().setCurrentOrg(orgs[0]);
-      } else {
-        // Sync currentOrg with fresh data
-        const freshCurrent = orgs.find((o) => o._id === current._id);
-        if (freshCurrent) {
-          get().setCurrentOrg(freshCurrent);
-        } else {
-          get().setCurrentOrg(orgs[0]);
-        }
       }
 
       return { success: true, data: orgs };
@@ -106,11 +107,13 @@ export const useOrgStore = create((set, get) => ({
   setCurrentOrg: (org) => {
     if (!org) {
       localStorage.removeItem("currentOrg");
+      localStorage.removeItem("selectedOrgId");
       set({ currentOrg: null, currentRole: null });
       return;
     }
 
     localStorage.setItem("currentOrg", JSON.stringify(org));
+    localStorage.setItem("selectedOrgId", org._id);
     set({
       currentOrg: org,
       currentRole: org.role?.name || org.role || "member",
@@ -122,6 +125,7 @@ export const useOrgStore = create((set, get) => ({
    */
   clearOrg: () => {
     localStorage.removeItem("currentOrg");
+    localStorage.removeItem("selectedOrgId");
     set({
       userOrgs: [],
       currentOrg: null,
