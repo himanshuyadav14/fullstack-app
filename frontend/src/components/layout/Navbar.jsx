@@ -116,6 +116,9 @@ const Navbar = ({ onOpenCreateOrg }) => {
             <Link to="/board" className={getNavLinkClass("/board")}>
               Board
             </Link>
+            <Link to="/teams" className={getNavLinkClass("/teams")}>
+              Teams
+            </Link>
           </nav>
         )}
       </div>
