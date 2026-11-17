@@ -2,7 +2,7 @@
 
 > **Project:** TeamFlow (Full-Stack Team & Project Management System)  
 > **Backend Tech Stack:** Node.js, Express.js (CommonJS), MongoDB, Mongoose, JWT, bcrypt, Socket.IO, Cloudinary  
-> **Last Updated:** October 31, 2026
+> **Last Updated:** November 17, 2026
 
 ---
 
@@ -21,18 +21,22 @@
 | Phase #      | Module / Feature                               |       Status       | Description                                                                            |
 | :----------- | :--------------------------------------------- | :----------------: | :------------------------------------------------------------------------------------- |
 | **Phase 1**  | **Core Setup & Authentication**                |  ✅ **Completed**  | Server setup, DB connection, JWT auth, signup/login/getMe, initial seed                |
-| **Phase 2**  | **User Management CRUD**                       |  ✅ **Completed**  | Get users, update user role, update profile, delete/deactivate user                    |
-| **Phase 3**  | **Dynamic RBAC & Role Migration**              |  ✅ **Completed**  | Full role CRUD, dynamic permissions registry, role safeguards & dynamic enums removed  |
+| **Phase 2**  | **User Management CRUD**                       | 🗑️ **Removed**     | Global user admin routes replaced by org-scoped members (Phase 4); removed in Phase 16. Profile routes live on |
+| **Phase 3**  | **Dynamic RBAC & Role Migration**              | 🗑️ **Removed**     | Global roles replaced by org-scoped roles (Phase 4); removed in Phase 16 |
 | **Phase 4**  | **Organization & Membership**                  |  ✅ **Completed**  | Multi-tenancy, org CRUD, membership model, org-level role assignments                  |
 | **Phase 5**  | **Team Management**                            |  ✅ **Completed**  | Teams under organizations, team managers, members, team scoping                        |
 | **Phase 6**  | **Project Management**                         |  ✅ **Completed**  | Projects under organizations, project assignments, status tracking, filters            |
 | **Phase 7**  | **Task Management & Assignments**              |  ✅ **Completed**  | Task CRUD, status/priority workflow, dates, assignments, pagination & search           |
 | **Phase 8**  | **Comments Module**                            |  ✅ **Completed**  | Task comments, editing, deletion with ownership checks                                 |
 | **Phase 9**  | **File Uploads (Cloudinary)**                  |  ✅ **Completed**  | Avatars, task attachments, file validation, storage metadata in DB                     |
-| **Phase 10** | **Notifications System**                       |  ⏳ **Upcoming**   | In-app notification triggers, read status, pagination                                  |
-| **Phase 11** | **Real-time WebSockets (Socket.IO)**           |  ⏳ **Upcoming**   | Authenticated socket connections, live updates for tasks/comments/notifications        |
-| **Phase 12** | **Dashboard & Analytics**                      |  ⏳ **Upcoming**   | Org/team/user metrics, task status breakdown, overdue analytics                        |
-| **Phase 13** | **Hardening, Indexing & Production Readiness** |  ⏳ **Upcoming**   | Rate limiting, CORS policies, Mongo indexes, centralized error handling                |
+| **Phase 10** | **Notifications System**                       |  ✅ **Completed**  | In-app notification triggers, read status, pagination                                  |
+| **Phase 11** | **Real-time WebSockets (Socket.IO)**           |  ✅ **Completed**  | Authenticated socket connections, live updates for tasks/comments/notifications        |
+| **Phase 12** | **Dashboard & Analytics**                      |  ✅ **Completed**  | Org/team/user metrics, task status breakdown, overdue analytics                        |
+| **Phase 13** | **Hardening, Indexing & Production Readiness** |  ✅ **Completed**  | Rate limiting, CORS policies, Mongo indexes, centralized error handling                |
+| **Phase 14** | **Security Audit & Bug Fixes**                 |  ✅ **Completed**  | Auth bypass, verification bypass, stale JWT access, input hardening, data integrity    |
+| **Phase 15** | **Full API Coverage in Frontend**              |  ✅ **Completed**  | Every live backend API has UI; backend support endpoints & safe deletes added          |
+| **Phase 16** | **Legacy Cleanup**                             |  ✅ **Completed**  | Removed superseded routes, dead code, unused permissions/deps; DB migrated            |
+| **Phase 17** | **Scaling & Developer Experience**             |  🔜 **Next**       | Tests, Redis, queues, refresh tokens, validation library, Docker, CI/CD                |
 
 ---
 
@@ -76,7 +80,13 @@
 
 ### Phase 2: User Management CRUD
 
-**Status:** ✅ Completed
+**Status:** 🗑️ Removed in Phase 16
+
+> **Note (Nov 17, 2026):** These admin routes were built for a single global role per user. After the move to
+> org-scoped roles (Phase 4), `User` no longer has a `role` field and `authorizePermission` reads a `req.user.role`
+> that is never set, so `GET /api/users`, `GET /api/users/:userId`, `PATCH /api/users/:userId/role` and
+> `DELETE /api/users/:userId` always return 403. They were also not tenant-scoped. **Removed in Phase 16.**
+> The **self-service profile routes** (`/api/users/profile`, `/api/users/profile/avatar`) are live and were repaired in Phase 15.
 
 #### 1. Scope & Goals
 
@@ -105,7 +115,11 @@
 
 ### Phase 3: Dynamic RBAC & Role Migration
 
-**Status:** ✅ Completed
+**Status:** 🗑️ Removed in Phase 16
+
+> **Note (Nov 17, 2026):** The dynamic RBAC design lives on, but scoped per organization:
+> `/api/organizations/:orgId/roles` (Phase 4) replaced these global `/api/roles` routes, which always returned 403;
+> **removed in Phase 16.**
 
 #### 1. Scope & Goals
 
@@ -163,8 +177,12 @@
 | `GET` | `/api/invitations/my` | Authenticated | ✅ Done | Lists pending invitations sent to authenticated user's email |
 | `POST` | `/api/invitations/accept` | Authenticated | ✅ Done | Body token acceptance via atomic state transition & transaction |
 | `POST` | `/api/invitations/reject` | Authenticated | ✅ Done | Body token rejection with expiry validation & atomic update |
-| `POST` | `/api/auth/verify-email` | Public | ✅ Done | Verifies user email via token or developer bypass |
-| `POST` | `/api/auth/resend-verification` | Authenticated/Public | ✅ Done | Resends email verification link via Gmail SMTP |
+| `POST` | `/api/invitations/:invitationId/accept` | Authenticated | ✅ Done | In-app accept; matches only invitations addressed to the caller's email (Phase 15) |
+| `POST` | `/api/invitations/:invitationId/reject` | Authenticated | ✅ Done | In-app decline; same email scoping (Phase 15) |
+| `POST` | `/api/auth/verify-email` | Public | ✅ Done | Verifies email via `email + otp` (developer bypass removed in Phase 14; unused token path removed in Phase 16) |
+| `POST` | `/api/auth/resend-verification` | Public | ✅ Done | Sends a fresh 6-digit OTP via Gmail SMTP |
+
+> Invitation email links point to `CLIENT_URL/invitations/accept?token=...` (fixed in Phase 14; the old `/<token>/accept` format is redirected by the frontend).
 
 ---
 
@@ -193,7 +211,7 @@
 | `PATCH` | `/api/organizations/:orgId/teams/:teamId` | `team:update` / Lead | ✅ Done | Update team info (name, description, lead assignment) |
 | `POST` | `/api/organizations/:orgId/teams/:teamId/members` | `team:update` / Lead | ✅ Done | Add active organization members to team |
 | `DELETE` | `/api/organizations/:orgId/teams/:teamId/members/:userId` | `team:update` / Lead / Self | ✅ Done | Remove member from team or voluntary team leave |
-| `DELETE` | `/api/organizations/:orgId/teams/:teamId` | `team:delete` | ✅ Done | Delete team from organization |
+| `DELETE` | `/api/organizations/:orgId/teams/:teamId` | `team:delete` | ✅ Done | Delete team; blocked while the team still owns projects (Phase 15) |
 
 ---
 
@@ -223,7 +241,7 @@
 | `PATCH` | `/api/organizations/:orgId/projects/:projectId` | `project:update` / Lead | ✅ Done | Update project info, dates, status, priority, team, lead |
 | `POST` | `/api/organizations/:orgId/projects/:projectId/members` | `project:update` / Lead | ✅ Done | Add active organization members to project |
 | `DELETE` | `/api/organizations/:orgId/projects/:projectId/members/:userId` | `project:update` / Lead / Self | ✅ Done | Remove contributor or self-leave from project |
-| `DELETE` | `/api/organizations/:orgId/projects/:projectId` | `project:delete` | ✅ Done | Delete project from organization |
+| `DELETE` | `/api/organizations/:orgId/projects/:projectId` | `project:delete` | ✅ Done | Delete project; cascades to its tasks and their comments (Phase 15) |
 
 ---
 
@@ -247,13 +265,15 @@
 | Method | Endpoint | Permission | Status | Description |
 | :--- | :--- | :--- | :---: | :--- |
 | `POST` | `/api/organizations/:orgId/projects/:projectId/tasks` | `task:create` | ✅ Done | Create task with auto-generated atomic `TF-1` sequential key |
-| `GET` | `/api/organizations/:orgId/projects/:projectId/tasks` | `task:read` | ✅ Done | Project Kanban board grouped by column status and order |
+| `GET` | `/api/organizations/:orgId/projects/:projectId/tasks/kanban` | `task:read` | ✅ Done | Project Kanban board grouped by column status and order |
 | `GET` | `/api/organizations/:orgId/tasks` | `task:read` | ✅ Done | Organization-wide task list with filters (assignee, status, priority, search) |
 | `GET` | `/api/organizations/:orgId/tasks/:taskId` | `task:read` | ✅ Done | Single task detailed view with populated project, team, assignee, reporter |
 | `PATCH` | `/api/organizations/:orgId/tasks/:taskId` | `task:update` / Assignee | ✅ Done | Update task metadata, description, dates, priority, tags |
 | `PATCH` | `/api/organizations/:orgId/tasks/:taskId/status` | `task:update` / Assignee | ✅ Done | Fast status workflow transition (`todo` -> `in_progress` -> `done`) |
 | `PATCH` | `/api/organizations/:orgId/tasks/:taskId/assign` | `task:assign` | ✅ Done | Reassign task to verified active organization member |
-| `DELETE` | `/api/organizations/:orgId/tasks/:taskId` | `task:delete` / Reporter | ✅ Done | Delete task from organization |
+| `DELETE` | `/api/organizations/:orgId/tasks/:taskId` | `task:delete` / Reporter | ✅ Done | Delete task and its comments (Phase 15) |
+
+> The task counter is incremented only after validation passes, so rejected requests no longer skip key numbers (Phase 14).
 
 ---
 
@@ -301,6 +321,8 @@
 
 | Method | Endpoint | Permission | Status | Description |
 | :--- | :--- | :--- | :---: | :--- |
+| `PATCH` | `/api/users/profile` | Authenticated | ✅ Done | Update own name (repaired in Phase 15) |
+| `DELETE` | `/api/users/profile` | Authenticated | ✅ Done | Delete own account: password confirmation, blocked while owning a workspace, soft delete (Phase 15) |
 | `POST` | `/api/users/profile/avatar` | Authenticated | ✅ Done | Upload/replace user avatar image on Cloudinary |
 | `DELETE` | `/api/users/profile/avatar` | Authenticated | ✅ Done | Remove user avatar and destroy asset from Cloudinary |
 | `POST` | `/api/organizations/:orgId/tasks/:taskId/attachments` | `task:update` / Assignee | ✅ Done | Upload file attachment to task via Cloudinary |
@@ -411,8 +433,99 @@
   - Production stack trace masking (`Internal Server Error` vs verbose local dev traces).
 - 404 Route Not Found handler (`notFoundHandler.js`) returning standardized JSON.
 - Process reliability:
-  - Graceful shutdown handlers for `SIGTERM` and `SIGINT`.
+  - Graceful shutdown handler for `SIGTERM` (closes the HTTP server before exiting).
   - Global `unhandledRejection` and `uncaughtException` monitors.
+
+---
+
+### Phase 14: Security Audit & Bug Fixes
+
+**Status:** ✅ Completed (Nov 17, 2026)
+
+#### 1. Critical Security Fixes
+
+| Issue | Root Cause | Fix |
+| :--- | :--- | :--- |
+| Login to any account with only an email | `verify-email` had a dev shortcut gated on `NODE_ENV !== "production"`; `NODE_ENV` was unset, so it ran everywhere | Shortcut removed; dev-only behaviour is now **opt-in** (`NODE_ENV === "development"`) |
+| Email verification bypass | Signup/resend returned `verificationToken` in the response; signup issued a JWT before verification; login ignored `isEmailVerified` | Secrets only sent by email; no JWT until verified; login returns `403 EMAIL_NOT_VERIFIED` |
+| Deleted/suspended users kept access for 7 days | `authMiddleware` only verified the JWT signature | Middleware loads the user on every request and rejects non-active accounts; socket auth rejects any non-active status |
+
+#### 2. Hardening & Correctness
+
+- Member search escapes regex input (prevented 500s and ReDoS); `escapeRegex` moved to one shared util (`src/utils/escapeRegex.js`).
+- `updateTask` returns 400 for unparseable dates instead of 500.
+- Task counter incremented after validation (no skipped task keys).
+- `req.user` now carries `name`/`email`, so notifications show the actor's real name.
+- `CLIENT_URL` fallback for email links corrected to `http://localhost:3000`.
+- `GET /api/organizations/my` includes role `permissions`, enabling permission-based UI.
+- Unused `resend` dependency removed (email uses nodemailer + Gmail).
+- `.env.example` documents every required variable.
+
+---
+
+### Phase 15: Full API Coverage in Frontend
+
+**Status:** ✅ Completed (Nov 17, 2026)
+
+#### 1. Scope & Goals
+
+- Every live backend endpoint now has a working UI (Tasks, Workspace Settings and Profile pages; team/project management modals; invitations tab; in-app invite accept; comment edit/delete; live comments, attachments and typing indicators).
+- Frontend gates actions with the same permission + resource rules the backend enforces.
+
+#### 2. Backend Changes Made to Support the UI
+
+| Change | Why |
+| :--- | :--- |
+| Repaired `PATCH`/`DELETE /api/users/profile` | Referenced the removed `User.role` field |
+| Account deletion requires password, blocks workspace owners, soft-deletes (memberships → `left`, email freed) | Hard delete orphaned memberships and could leave orgs without an owner |
+| `POST /api/invitations/:invitationId/accept\|reject` | Pending-invite list needed actions without the emailed token; scoped to the caller's email |
+| Project delete cascades to tasks + comments; task delete removes comments | Prevent orphaned records |
+| Team delete blocked while it owns projects | `Project.team` is required |
+| Login and `/auth/me` return `avatar` | Show profile photos in the UI |
+
+---
+
+### Phase 16: Legacy Cleanup
+
+**Status:** ✅ Completed (Nov 17, 2026)
+
+#### 1. Code Removed
+
+- [x] Global routes `/api/roles/*` (5) and `/api/users` admin routes (`GET /`, `GET /:userId`, `PATCH /:userId/role`, `DELETE /:userId`), with `roleController.js`, the legacy handlers in `userController.js`, and the `authorizePermission` / `authorizeRoles` middleware.
+- [x] Permissions `user:read|create|update|delete` and `organization:delete` (also from the org role seed and `scripts/seedDatabase.js`).
+- [x] Duplicate routes: `PUT` twins of `PATCH` (task update/status/assign, role update) and `GET /projects/:projectId/tasks` (kept `/tasks/kanban`). Frontend assign call switched to `PATCH`.
+- [x] Dead email-verification token flow: the link email (`sendVerificationEmail`) was never sent, so the generated token, its `User` fields, the `{ token }` branch of `verify-email` and the frontend auto-verify were unreachable. Verification is OTP-only.
+- [x] Unused socket org rooms: `join:org` / `leave:org` handlers, `emitToOrg`, `getIO` (nothing was ever emitted to `org:` rooms) and the frontend join effect.
+- [x] Unused variables/imports flagged by ESLint; unused backend devDependency `socket.io-client`.
+- [x] OTPs now generated with `crypto.randomInt` instead of `Math.random`.
+
+#### 2. Database Migration
+
+- Script: `scripts/cleanupLegacyData.js` (dry run by default, `--apply` to execute).
+- Pulled removed permissions from roles, deletes org-less global roles, unsets legacy user fields (`role`, `verificationTokenHash`, `verificationTokenExpiresAt`).
+- Result on the dev database: **6 roles cleaned**, 0 global roles, 0 users; all 17 roles validate against the reduced permission enum.
+
+#### 3. Postman
+
+- Removed the Roles folder and the 4 legacy user requests; folders renumbered (11 total).
+- Signup saves the dev-only OTP; verify requests send `{ email, otp }` and save the session token; account deletion sends the password.
+- Added in-app invitation accept/reject by ID; Kanban request uses `/tasks/kanban`.
+
+---
+
+### Phase 17: Scaling & Developer Experience
+
+**Status:** ⏳ Upcoming
+
+- [ ] Automated tests (Jest + Supertest) for auth, RBAC and tenant isolation.
+- [ ] Request validation library (Zod/Joi).
+- [ ] Refresh tokens (short-lived access token + rotating refresh token in httpOnly cookie).
+- [ ] Redis: caching (e.g. unread counts), shared rate-limit store, Socket.IO Redis adapter for multi-instance scaling.
+- [ ] Background job queue (BullMQ) for emails and cron-style cleanup (expired invitations).
+- [ ] Clean up Cloudinary assets when tasks/projects are deleted.
+- [ ] Structured logging (Pino/Winston) and error monitoring (Sentry).
+- [ ] API docs (Swagger/OpenAPI) and versioning (`/api/v1`).
+- [ ] Docker + CI/CD (GitHub Actions).
 
 ---
 
@@ -438,3 +551,8 @@
 | **Nov 15, 2026** | **Phase 11**| Real-Time WebSockets: Socket.IO setup on HTTP server, JWT handshake auth (`socketAuth.js`), scoped room partitioning (`user`, `org`, `project`, `task`), live triggers for notifications, Kanban updates, and discussions. | Live Test verified |
 | **Nov 15, 2026** | **Phase 12**| Dashboard & Analytics APIs: MongoDB single-pass `$facet` aggregation pipelines, executive dashboard KPIs, project completion metrics, member workload capacity, personal summary, and Postman folder 12. | Live Test verified |
 | **Nov 15, 2026** | **Phase 13**| Hardening & Security: Helmet HTTP security headers, multi-tier rate limiters (`authLimiter`, `apiLimiter`, `fileUploadLimiter`), centralized error handler (`errorHandler.js`), 404 handler, and graceful shutdown. | Live Test verified |
+| **Nov 17, 2026** | **Phase 14**| Security audit: removed email-only login shortcut, closed verification bypass, auth middleware checks account status, socket auth rejects non-active users (`83c7c5b`). | Mocked unit tests |
+| **Nov 17, 2026** | **Phase 14**| Invitation link route fixed, email-link verification fixed (`b6999da`); search escaping, date validation, task counter ordering, permission payloads, unused `resend` removed (`a2c2698`, `14ed517`). | Mocked unit tests |
+| **Nov 17, 2026** | **Phase 15**| Profile endpoints repaired, safe account deletion, in-app invitation accept/reject, cascade/restrict deletes for projects, tasks and teams (`61e56e0`). Frontend for all remaining APIs (`f2bcbb6`). | Mocked unit tests + build/lint |
+| **Nov 17, 2026** | **Docs**    | `PROJECT_PHASES.md` updated: phase statuses corrected, Phases 2/3 marked superseded, Phases 14–17 added. | Documentation    |
+| **Nov 17, 2026** | **Phase 16**| Legacy cleanup: removed global role/user admin routes, unused permissions, duplicate routes, dead verification-token flow, unused socket org rooms and deps; DB migrated via `scripts/cleanupLegacyData.js`; Postman updated. | DB dry-run + apply + validation, build/lint |
