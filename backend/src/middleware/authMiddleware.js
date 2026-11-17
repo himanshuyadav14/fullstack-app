@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
     const bearerToken = req.headers.authorization;
 
@@ -29,16 +30,33 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
+    // A valid signature only proves we issued the token; the account may have been
+    // deleted or suspended since. Check the current state on every request.
+    const user = await User.findById(decoded.id).select("_id name email status");
+
+    if (!user || user.status !== "active") {
+      return res.status(401).json({
+        success: false,
+        message: "Account is no longer active",
+      });
+    }
+
     req.user = {
-      id: decoded.id,
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
     };
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token",
-    });
+    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+    // DB or other unexpected failure: don't log the user out for a server-side problem
+    return next(error);
   }
 };
 

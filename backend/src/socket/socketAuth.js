@@ -30,7 +30,7 @@ const socketAuth = async (socket, next) => {
 
     // 3. Optional DB verification to ensure user still exists & active
     const user = await User.findById(decoded.id).select("_id name email status");
-    if (!user || user.status === "suspended") {
+    if (!user || user.status !== "active") {
       return next(new Error("Authentication error: User not found or suspended"));
     }
 

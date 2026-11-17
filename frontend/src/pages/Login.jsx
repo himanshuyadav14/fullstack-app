@@ -35,6 +35,9 @@ const Login = () => {
     if (res.success) {
       toast.success("Welcome back!");
       navigate("/");
+    } else if (res.code === "EMAIL_NOT_VERIFIED") {
+      toast.error(res.message);
+      navigate(`/verify-email?email=${encodeURIComponent(res.email || email)}`);
     } else {
       setApiError(res.message);
       toast.error(res.message || "Failed to sign in");

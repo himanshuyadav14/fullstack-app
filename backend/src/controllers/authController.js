@@ -107,20 +107,14 @@ const signup = async (req, res) => {
       console.warn("⚠️ User registered, but verification OTP email delivery failed.");
     }
 
-    // 10. Issue JWT session token
-    const token = jwt.sign(
-      { id: newUser._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
-    );
-
+    // 10. No session token here: the user gets one only after verifying their email.
+    // Secrets (OTP / verification token) are delivered by email only, never in the response.
     return res.status(201).json({
       success: true,
       message: "User registered successfully. A 6-digit verification code has been sent to your email.",
-      token,
       email: newUser.email,
-      otp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
-      verificationToken: rawVerificationToken,
+      // Opt-in debug aid: only when NODE_ENV is explicitly "development"
+      otp: process.env.NODE_ENV === "development" ? rawOtp : undefined,
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -152,16 +146,19 @@ const verifyEmail = async (req, res) => {
   try {
     const { token, email, otp } = req.body;
 
-    if (!otp && !token && !email) {
+    const hasOtpPair = typeof email === "string" && email.trim() && otp;
+    const hasToken = typeof token === "string" && token.trim();
+
+    if (!hasOtpPair && !hasToken) {
       return res.status(400).json({
         success: false,
-        message: "Verification code (OTP) or token is required",
+        message: "Email with verification code (OTP), or a verification token, is required",
       });
     }
 
     let user = null;
 
-    if (email && otp) {
+    if (hasOtpPair) {
       const normalizedEmail = email.trim().toLowerCase();
       const otpHash = crypto
         .createHash("sha256")
@@ -173,15 +170,12 @@ const verifyEmail = async (req, res) => {
         emailOtpHash: otpHash,
         emailOtpExpiresAt: { $gt: new Date() },
       });
-    } else if (token && typeof token === "string") {
+    } else {
       const tokenHash = crypto.createHash("sha256").update(token.trim()).digest("hex");
       user = await User.findOne({
         verificationTokenHash: tokenHash,
         verificationTokenExpiresAt: { $gt: new Date() },
       });
-    } else if (email && process.env.NODE_ENV !== "production") {
-      // Dev shortcut for quick local testing without email access
-      user = await User.findOne({ email: email.trim().toLowerCase() });
     }
 
     if (!user) {
@@ -304,8 +298,7 @@ const resendVerification = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "A new 6-digit verification code has been sent to your email.",
-      otp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
-      verificationToken: rawVerificationToken,
+      otp: process.env.NODE_ENV === "development" ? rawOtp : undefined,
     });
   } catch (err) {
     console.error("resendVerification error:", err);
@@ -365,6 +358,16 @@ const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
+      });
+    }
+
+    // Checked after the password so this doesn't reveal which emails are registered
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        success: false,
+        code: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email address before signing in.",
+        email: user.email,
       });
     }
 

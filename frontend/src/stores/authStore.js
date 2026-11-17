@@ -120,7 +120,12 @@ export const useAuthStore = create((set, get) => ({
       const message =
         err.response?.data?.message || "Invalid email or password.";
       set({ loading: false, error: message });
-      return { success: false, message };
+      return {
+        success: false,
+        message,
+        code: err.response?.data?.code,
+        email: err.response?.data?.email,
+      };
     }
   },
 
